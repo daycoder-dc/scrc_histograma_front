@@ -12,9 +12,9 @@ import { MenuItem } from 'primeng/api';
   template: `
     <div class="layout-topbar">
         <div class="layout-topbar-logo-container">
-            <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
+            <!-- <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
                 <i class="pi pi-bars"></i>
-            </button>
+            </button> -->
             <a class="layout-topbar-logo" routerLink="/">
               <!-- logo -->
                <div class="flex flex-col">
@@ -38,10 +38,10 @@ import { MenuItem } from 'primeng/api';
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
                     <!-- Botón de perfil  -->
-                    <button type="button" class="layout-topbar-action">
+                    <!-- <button type="button" class="layout-topbar-action">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
-                    </button>
+                    </button> -->
                 </div>
             </div>
         </div>
