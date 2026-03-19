@@ -1,13 +1,9 @@
 {
-    "name": "sakai-ng",
-    "version": "21.0.0",
+    "name": "scrc_histograma",
+    "version": "0.0.1",
     "scripts": {
-        "ng": "ng",
         "start": "ng serve",
-        "build": "ng build",
-        "watch": "ng build --watch --configuration development",
-        "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
-        "test": "ng test"
+        "build": "ng build"
     },
     "private": true,
     "dependencies": {
