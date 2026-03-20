@@ -60,15 +60,12 @@ export class Dashboard {
     }
   ];
 
-
   protected data_distribucion_horaria: any = {};
   protected data_tipo_actividades: any = []
   protected options_distribucion_horaria: any = {};
 
   constructor() {
-    this.mano_obra.fetch_periodos();
-
-
+    this.mano_obra.fetch_proyectos();
 
     this.data_distribucion_horaria = {
       labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],

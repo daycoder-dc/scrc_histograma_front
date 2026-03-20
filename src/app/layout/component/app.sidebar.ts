@@ -1,5 +1,5 @@
 import { Component, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
-import { DashboardFilter } from '@/app/pages/dashboard/dashboard_filter';
+import { DashboardFilter } from '@/app/pages/dashboard/filters/filters';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { filter, Subject, takeUntil } from 'rxjs';
