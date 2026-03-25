@@ -1,4 +1,4 @@
-import { BrigadasData, FilterItem, ManoObraFilters, PeriodosData, ProyectosData, TecnicosData } from "@/config/typing";
+import { FilterItem, ManoObraData } from "@/config/typing";
 import { inject, Injectable, signal } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
@@ -9,6 +9,9 @@ export class ManoObraDataService {
   private readonly block = inject(BlockHttpService);
   private readonly http = inject(HttpClient);
 
+  // Data general
+  public readonly dataset = signal<ManoObraData[]>([]);
+
   // Datos de los indicadores
   public readonly total_ordenes = signal(0);
   public readonly efectivas = signal(0);
@@ -17,117 +20,185 @@ export class ManoObraDataService {
   public readonly recaudacion = signal(0);
 
   // Datos para los filtros
-  public readonly proyectos = signal<ProyectosData[]>([]);
-  public readonly peridos = signal<PeriodosData[]>([]);
-  public readonly brigadas = signal<BrigadasData[]>([]);
-  public readonly tecnicos = signal<TecnicosData[]>([]);
+  public readonly proyectos = signal<FilterItem[]>([]);
+  public readonly periodos = signal<FilterItem[]>([]);
+  public readonly brigadas = signal<FilterItem[]>([]);
+  public readonly tecnicos = signal<FilterItem[]>([]);
 
   public readonly actividad = signal<FilterItem[]>([
-    {name:"Suspensión"},
-    {name:"Reconexión"}
+    {label:"Suspensión", value: "1"},
+    {label:"Reconexión", value: "2"}
   ]);
 
   // Datos seleccionados en los filtros
   public readonly form_filters = new FormGroup({
-    proyectos: new FormControl<string[]>([], {nonNullable:true}),
-    periodos: new FormControl<string[]>([], {nonNullable:true}),
-    brigadas: new FormControl<string[]>([], {nonNullable:true}),
-    tecnicos: new FormControl<string[]>([],{nonNullable:true}),
-    actividad: new FormControl<string[]>([], {nonNullable:true})
+    proyectos: new FormControl<string[]>([]),
+    periodos: new FormControl<string[]>([]),
+    brigadas: new FormControl<string[]>([]),
+    tecnicos: new FormControl<string[]>([]),
+    actividad: new FormControl<string[]>([])
   });
 
-  private readonly data_mano_obra:any[] = [];
+  constructor () {
+    this.form_filters.controls.proyectos.valueChanges.subscribe(() => {
+      const proyectos = this.form_filters.controls.proyectos.value ?? [];
 
-  public fetch_proyectos() {
-    this.block.enable();
+      this.form_filters.controls.periodos.reset();
+      this.form_filters.controls.brigadas.reset();
+      this.form_filters.controls.tecnicos.reset();
+      this.form_filters.controls.actividad.reset();
 
-    this.http.get<ProyectosData[]>("/api/v1/manobra/proyectos").subscribe({
-      next: (res) => {
-        this.fetch_mano_obra();
-        this.proyectos.set(res);
-        this.block.disable();
-      },
-      error: (err) => {
-        console.error(err);
-        this.block.disable();
+      if (proyectos.length == 0) {
+        this.periodos.set([]);
+        this.brigadas.set([]);
+        this.tecnicos.set([]);
       }
+
+      if (proyectos.length > 0) {
+        const dataset = this.dataset();
+        const actividad = this.actividad();
+
+        const periodos = Array.from(
+          new Set(
+            dataset.filter(it =>
+              proyectos.includes(it.zona)
+            ).map(it => it.fecha)
+          )
+        ).map<FilterItem>(it => ({label:it, value:it}))
+
+        this.periodos.set(periodos);
+        this.form_filters.controls.actividad.setValue(actividad.map(it => it.value));
+      }
+
+      this.load_dataset();
+    });
+
+    this.form_filters.controls.periodos.valueChanges.subscribe(() => {
+      const proyectos = this.form_filters.controls.proyectos.value ?? [];
+      const periodos = this.form_filters.controls.periodos.value ?? [];
+
+      this.form_filters.controls.brigadas.reset();
+      this.form_filters.controls.tecnicos.reset();
+
+      if (periodos.length == 0) {
+        this.brigadas.set([]);
+        this.tecnicos.set([]);
+      }
+
+      if (periodos.length > 0) {
+        const dataset = this.dataset();
+
+        const brigadas = Array.from(
+          new Set(
+            dataset.filter(it =>
+              proyectos.includes(it.zona) &&
+              periodos.includes(it.fecha)
+            ).map(it => it.tipo_brigada)
+          )
+        ).map<FilterItem>(it => ({label:it, value:it}));
+
+        this.brigadas.set(brigadas);
+      }
+
+      this.load_dataset();
+    });
+
+    this.form_filters.controls.brigadas.valueChanges.subscribe(() => {
+      const proyectos = this.form_filters.controls.proyectos.value ?? [];
+      const periodos = this.form_filters.controls.periodos.value ?? [];
+      const brigadas = this.form_filters.controls.brigadas.value ?? [];
+
+      this.form_filters.controls.tecnicos.reset();
+
+      if (brigadas.length == 0) {
+        this.tecnicos.set([]);
+      }
+
+      if (brigadas.length > 0) {
+        const data = this.dataset();
+
+        const tecnicos = Array.from(
+          new Set(
+            data.filter(it =>
+              proyectos.includes(it.zona) &&
+              periodos.includes(it.fecha) &&
+              brigadas.includes(it.tipo_brigada)
+            ).map(it => it.tecnico)
+          )
+        ).map<FilterItem>(it => ({label:it, value:it}))
+
+        this.tecnicos.set(tecnicos);
+      }
+
+      this.load_dataset();
+    });
+
+    this.form_filters.controls.tecnicos.valueChanges.subscribe(() => {
+      this.load_dataset();
+    });
+
+    this.form_filters.controls.actividad.valueChanges.subscribe(() => {
+      this.load_dataset();
     });
   }
 
-  public fetch_periodos(params:ManoObraFilters) {
-    this.block.enable();
+  private load_dataset() {
+    const proyectos = this.form_filters.controls.proyectos.value ?? [];
+    const periodos = this.form_filters.controls.periodos.value ?? [];
+    const brigadas = this.form_filters.controls.brigadas.value ?? [];
+    const tecnicos = this.form_filters.controls.tecnicos.value ?? [];
+    const actividad = this.form_filters.controls.actividad.value ?? [];
 
-    this.http.get<PeriodosData[]>("/api/v1/manobra/periodos",{
-      params: {
-        proyectos: params.proyectos!
-      }
-    }).subscribe({
-      next: (res) => {
-        this.peridos.set(res);
-        this.block.disable();
-      },
-      error: (err) => {
-        console.error(err);
-        this.block.disable();
-      }
-    })
+    const dataset = this.dataset();
+
+    const result = dataset.filter(
+      it => proyectos.includes(it.zona)
+      && (
+        actividad.length == 1 ?
+        actividad.includes("2")?
+        it.tipo_os == "TO502" :
+        it.tipo_os != "TO502" :
+        !(actividad.length == 0)
+      )
+      && (
+          periodos.length > 0 ?
+          periodos.includes(it.fecha) :
+          true
+        )
+      && (
+          brigadas.length > 0 ?
+          brigadas.includes(it.tipo_brigada) :
+          true
+        )
+      && (
+        tecnicos.length > 0 ?
+        tecnicos.includes(it.tecnico) :
+        true
+      )
+    );
+
+    this.total_ordenes.set(result.length);
   }
 
-  public fetch_brigadas(params:ManoObraFilters) {
+  public fetch_data() {
     this.block.enable();
 
-    this.http.get<BrigadasData[]>("/api/v1/manobra/brigadas", {
-      params: {
-        proyectos:params.proyectos!,
-        periodos:params.periodos!
-      }
-    }).subscribe({
+    const data = {
+      proyectos: this.form_filters.controls.proyectos.value,
+      periodos: this.form_filters.controls.periodos.value,
+      brigadas: this.form_filters.controls.brigadas.value,
+      tecnicos: this.form_filters.controls.tecnicos.value
+    }
+
+    this.http.post<ManoObraData[]>("/api/v1/manobra", data).subscribe({
       next: (res) => {
-        this.brigadas.set(res);
+        this.dataset.set(res);
         this.block.disable();
-      },
-      error: (err) => {
-        console.error(err);
-        this.block.disable();
-      }
-    });
-  }
 
-  public fetch_tecnicos(params:ManoObraFilters) {
-    this.block.enable();
-
-    this.http.get<TecnicosData[]>("/api/v1/manobra/tecnicos", {
-      params: {
-        proyectos: params.proyectos!,
-        periodos: params.periodos!,
-        brigadas: params.brigadas!
-      }
-    }).subscribe({
-      next: (res) => {
-        this.tecnicos.set(res);
-        this.block.disable();
-      },
-      error: (err) => {
-        console.error(err);
-        this.block.disable();
-      }
-    });
-  }
-
-  public fetch_mano_obra(params?:ManoObraFilters) {
-    this.block.enable();
-
-    const proyectos = params?.proyectos ?? this.proyectos().map(it => it.proyecto);
-    const periodos = params?.periodos ?? ['0'];
-    const brigadas = params?.brigadas ?? ['0'];
-    const tecnicos = params?.tecnicos ?? ['0'];
-
-    this.http.patch<any[]>("/api/v1/manobra",{
-        proyectos,periodos,brigadas,tecnicos
-    }).subscribe({
-      next: (res) => {
-        console.log(res);
-        this.block.disable();
+        // cargar datos del campo proyectos
+        const zonas = Array.from(new Set(res.map(it => it.zona)));
+        this.proyectos.set(zonas.map<FilterItem>(it => ({label: it, value: it })));
+        this.form_filters.controls.proyectos.setValue(zonas);
       },
       error: (err) => {
         console.error(err);

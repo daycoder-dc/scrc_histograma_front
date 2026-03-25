@@ -19,7 +19,7 @@ export class DashboardFilter {
   }
 
   protected get periodos() {
-    return this.mano_obra.peridos();
+    return this.mano_obra.periodos();
   }
 
   protected get brigadas() {
@@ -36,31 +36,5 @@ export class DashboardFilter {
 
   protected get form() {
     return this.mano_obra.form_filters;
-  }
-
-  protected on_proyectos() {
-    const proyectos = this.form.controls.proyectos.value;
-
-    this.form.controls.periodos.reset();
-    this.mano_obra.fetch_periodos({proyectos});
-  }
-
-  protected on_periodos() {
-    const proyectos = this.form.controls.proyectos.value;
-    const periodos = this.form.controls.periodos.value;
-
-    this.mano_obra.fetch_brigadas({proyectos, periodos});
-  }
-
-  protected on_brigadas() {
-    const proyectos = this.form.controls.proyectos.value;
-    const periodos = this.form.controls.periodos.value;
-    const brigadas = this.form.controls.brigadas.value;
-
-    this.mano_obra.fetch_tecnicos({proyectos, periodos, brigadas});
-  }
-
-  protected on_tecnicos() {
-
   }
 }

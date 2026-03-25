@@ -1,8 +1,8 @@
 import { NgxMarqueeComponent, OmMarqueeItemDirective } from '@omnedia/ngx-marquee';
 import { ManoObraDataService } from '@/services/mano-obra-data';
 import { DecimalPipe, NgClass } from '@angular/common';
-import { Table, TableModule } from 'primeng/table';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
 
@@ -22,7 +22,7 @@ import { CardModule } from 'primeng/card';
 export class Dashboard {
   private readonly mano_obra = inject(ManoObraDataService);
 
-  protected data_indicadores = [
+  protected data_indicadores = computed(() => [
     {
       value: this.mano_obra.total_ordenes(),
       description: "Total ordenes",
@@ -58,15 +58,13 @@ export class Dashboard {
       background: false,
       modeda: true
     }
-  ];
+  ])
 
   protected data_distribucion_horaria: any = {};
   protected data_tipo_actividades: any = []
   protected options_distribucion_horaria: any = {};
 
   constructor() {
-    this.mano_obra.fetch_proyectos();
-
     this.data_distribucion_horaria = {
       labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
       datasets: [
@@ -125,5 +123,9 @@ export class Dashboard {
       //   }
       // }
     }
+  }
+
+  protected ngOnInit() {
+    this.mano_obra.fetch_data();
   }
 }

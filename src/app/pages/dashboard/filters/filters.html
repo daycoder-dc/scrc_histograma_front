@@ -2,35 +2,35 @@
   <!-- proyecto -->
   <div class="flex flex-col gap-2">
     <label for="proyectos">Proyectos</label>
-    <p-multi-select formControlName="proyectos" optionLabel="proyecto" optionValue="proyecto" appendTo="body"
-      placeholder="Seleccionar" [showClear]="true" [fluid]="true" [options]="proyectos" (onChange)="on_proyectos()" />
+    <p-multi-select formControlName="proyectos" appendTo="body" [options]="proyectos"
+      placeholder="Seleccionar" [showClear]="true" [fluid]="true" />
   </div>
 
   <!-- Periodo -->
   <div class="flex flex-col gap-2">
     <label for="periodo">Periodo</label>
-    <p-multi-select formControlName="periodos" optionLabel="periodo" optionValue="periodo" appendTo="body"
-      placeholder="Seleccionar" [showClear]="true" [fluid]="true" [options]="periodos" (onChange)="on_periodos()" />
+    <p-multi-select formControlName="periodos" appendTo="body" [options]="periodos"
+      placeholder="Seleccionar" [showClear]="true" [fluid]="true" />
   </div>
 
   <!-- Brigadas -->
   <div class="flex flex-col gap-2">
     <label for="brigadas">Brigadas</label>
-    <p-multi-select formControlName="brigadas" optionLabel="brigada" optionValue="brigada" appendTo="body"
-      placeholder="Seleccionar" [showClear]="true" [fluid]="true" [options]="brigadas" (onChange)="on_brigadas()" />
+    <p-multi-select formControlName="brigadas" appendTo="body" [options]="brigadas"
+      placeholder="Seleccionar" [showClear]="true" [fluid]="true" />
   </div>
 
   <!-- Tecnicos -->
   <div class="flex flex-col gap-2">
     <label for="brigadas">Técnicos</label>
-    <p-multi-select formControlName="tecnicos" optionLabel="tecnico" optionValue="tecnico" appendTo="body"
-      placeholder="Seleccionar" [showClear]="true" [fluid]="true" [options]="tecnicos" (onChange)="on_tecnicos()" />
+    <p-multi-select formControlName="tecnicos" appendTo="body" [options]="tecnicos"
+      placeholder="Seleccionar" [showClear]="true" [fluid]="true"  />
   </div>
 
   <!-- Actividad -->
   <div class="flex flex-col gap-2">
     <label for="brigadas">Actividad</label>
-    <p-multi-select formControlName="actividad" optionLabel="name" optionLabel="name" appendTo="body"
-      placeholder="Seleccionar" [showClear]="true" [fluid]="true" [options]="actividad" />
+    <p-multi-select formControlName="actividad" appendTo="body" [options]="actividad"
+      placeholder="Seleccionar" [showClear]="true" [fluid]="true" />
   </div>
 </div>

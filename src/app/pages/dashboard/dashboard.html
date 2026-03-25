@@ -12,7 +12,7 @@
 
   <!-- indicadores -->
   <om-marquee animationDuration="40s">
-    @for (card of data_indicadores; track $index) {
+    @for (card of data_indicadores(); track $index) {
     <ng-template [omMarqueeItem]="card">
       <p-card [pt]="{
         root: { class: 'overflow-hidden'},
