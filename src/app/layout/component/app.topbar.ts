@@ -1,14 +1,20 @@
+import { DashboardUploadFile } from '@/app/pages/dashboard/upload_file/upload_file';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { Component, inject, signal } from '@angular/core';
 import { StyleClassModule } from 'primeng/styleclass';
-import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { TooltipModule } from "primeng/tooltip";
 import { CommonModule } from '@angular/common';
-import { MenuItem } from 'primeng/api';
 
 @Component({
   selector: 'app-topbar',
-  standalone: true,
-  imports: [RouterModule, CommonModule, StyleClassModule],
+  imports: [
+    DashboardUploadFile,
+    StyleClassModule,
+    TooltipModule,
+    RouterModule,
+    CommonModule
+  ],
   template: `
     <div class="layout-topbar">
         <div class="layout-topbar-logo-container">
@@ -26,7 +32,7 @@ import { MenuItem } from 'primeng/api';
 
         <div class="layout-topbar-actions">
             <div class="layout-config-menu">
-                <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
+                <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()" pTooltip="Cambiar tema" tooltipPosition="left">
                     <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
                 </button>
             </div>
@@ -37,26 +43,38 @@ import { MenuItem } from 'primeng/api';
 
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
+                    <!-- Botón de cargue de base de datos -->
+                    <button type="button" class="layout-topbar-action" pTooltip="Cargar archivo excel" tooltipPosition="left" (click)="upload_file()">
+                        <i class="pi pi-file-arrow-up"></i>
+                        <span>Cargar DB</span>
+                    </button>
+
                     <!-- Botón de perfil  -->
-                    <!-- <button type="button" class="layout-topbar-action">
+                    <button type="button" class="layout-topbar-action" pTooltip="Mi perfil" tooltipPosition="left">
                         <i class="pi pi-user"></i>
-                        <span>Profile</span>
-                    </button> -->
+                        <span>Mi perfil</span>
+                    </button>
                 </div>
             </div>
         </div>
-    </div>`
+    </div>
+
+    <app-dashboard-upload-file [(visible)]="upload_file_visile" />
+  `
 })
 export class AppTopbar {
-  protected bar_title = "SCR Dashboard";
-  items!: MenuItem[];
+  protected readonly bar_title = "SCR Dashboard";
+  protected readonly layoutService = inject(LayoutService);
+  protected upload_file_visile = signal(false);
 
-  layoutService = inject(LayoutService);
-
-  toggleDarkMode() {
+  protected toggleDarkMode() {
     this.layoutService.layoutConfig.update((state) => ({
       ...state,
       darkTheme: !state.darkTheme
     }));
+  }
+
+  protected upload_file() {
+    this.upload_file_visile.update(value => !value);
   }
 }

@@ -1,8 +1,9 @@
-import { FilterItem, ManoObraData } from "@/config/typing";
-import { inject, Injectable, signal } from "@angular/core";
+import { EstadoOrdenes, FilterItem, ManoObraData, RendimientoBrigadaDts, TipoActividadesDts } from "@/config/typing";
+import { computed, inject, Injectable, signal } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
+import { ChartData} from "chart.js";
 
 @Injectable({providedIn:"root"})
 export class ManoObraDataService {
@@ -11,6 +12,44 @@ export class ManoObraDataService {
 
   // Data general
   public readonly dataset = signal<ManoObraData[]>([]);
+
+  public readonly indicadores = computed(() => [
+    {
+      value: this.total_ordenes(),
+      description: "Total ordenes",
+      color: "text-white",
+      background: true,
+      modeda: false
+    },
+    {
+      value: this.efectivas(),
+      description: "Efectivas",
+      color: "text-primary",
+      background: false,
+      modeda: false
+    },
+    {
+      value: this.fallidas_pago(),
+      description: "Fallida C/Pago",
+      color: "text-primary",
+      background: false,
+      modeda: false
+    },
+    {
+      value: this.sin_recaudacion(),
+      description: "Sin recaudación",
+      color: "text-red-500",
+      background: false,
+      modeda: false
+    },
+    {
+      value: this.recaudacion(),
+      description: "Recaudación",
+      color: "text-green-500",
+      background: false,
+      modeda: true
+    }
+  ]);
 
   // Datos de los indicadores
   public readonly total_ordenes = signal(0);
@@ -39,6 +78,12 @@ export class ManoObraDataService {
     actividad: new FormControl<string[]>([])
   });
 
+  // Datos dashboard
+  public readonly distrubuion_horaria_valor = signal<ChartData | null>(null);
+  public readonly evolucion_diaria = signal<ChartData | null>(null);
+  public readonly top_actividades = signal<TipoActividadesDts[]>([]);
+  public readonly rendimiento_brigada = signal<RendimientoBrigadaDts[]>([]);
+
   constructor () {
     this.form_filters.controls.proyectos.valueChanges.subscribe(() => {
       const proyectos = this.form_filters.controls.proyectos.value ?? [];
@@ -62,7 +107,7 @@ export class ManoObraDataService {
           new Set(
             dataset.filter(it =>
               proyectos.includes(it.zona)
-            ).map(it => it.fecha)
+            ).map(it => it.periodo)
           )
         ).map<FilterItem>(it => ({label:it, value:it}))
 
@@ -162,7 +207,7 @@ export class ManoObraDataService {
       )
       && (
           periodos.length > 0 ?
-          periodos.includes(it.fecha) :
+          periodos.includes(it.periodo) :
           true
         )
       && (
@@ -177,7 +222,248 @@ export class ManoObraDataService {
       )
     );
 
-    this.total_ordenes.set(result.length);
+    // Cargar indicadores
+    {
+      const total_ordenes = result.length;
+      const efectivas = result.filter(it => it.estado == EstadoOrdenes.EFECTIVA).length;
+      const fallidas = result.filter(it => it.estado == EstadoOrdenes.FALLIDA).length;
+      const sin_recaudacion = result.filter(it => it.estado == EstadoOrdenes.PERDIDA).length;
+
+      const recaudacion = result.filter(
+        it => it.estado == EstadoOrdenes.EFECTIVA || it.estado == EstadoOrdenes.FALLIDA
+      ).reduce((acc, cur) => acc + cur.valor_unitario , 0);
+
+      this.total_ordenes.set(total_ordenes);
+      this.efectivas.set(efectivas);
+      this.fallidas_pago.set(fallidas);
+      this.sin_recaudacion.set(sin_recaudacion);
+      this.recaudacion.set(recaudacion);
+    }
+
+    // Cargar grafico de distribución horaria y valor
+    {
+      type DataGraphic = {
+        [k:string]: {
+          efectivas: number,
+          fallidas_pagas: number,
+          fallidas: number,
+          ingreso: number
+        }
+      }
+
+      const data = Object.entries(
+        result.reduce<DataGraphic>((acc, cur) => {
+          if (!acc[cur.tiempo]) {
+            acc[cur.tiempo] = {
+              efectivas: 0,
+              fallidas_pagas: 0,
+              fallidas: 0,
+              ingreso: 0
+            }
+          }
+
+          if (cur.estado == EstadoOrdenes.EFECTIVA) {
+            acc[cur.tiempo].efectivas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.FALLIDA) {
+            acc[cur.tiempo].fallidas_pagas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.PERDIDA) {
+            acc[cur.tiempo].fallidas += 1;
+          }
+
+          acc[cur.tiempo].ingreso += cur.valor_unitario;
+
+          return acc;
+        }, {})
+      ).sort((a,b) => a[0].localeCompare(b[0]));
+
+      const dataset: ChartData = {
+        labels: data.map(it => it[0]),
+        datasets: [
+          {
+            type: "bar",
+            label: "Efectivas",
+            data: data.map(it => it[1].efectivas),
+            yAxisID: "y"
+          },
+          {
+            type: "bar",
+            label: "Fallidas Paga",
+            data: data.map(it => it[1].fallidas_pagas),
+            yAxisID: "y"
+          },
+          {
+            type: "bar",
+            label: "Fallida",
+            data: data.map(it => it[1].fallidas),
+            yAxisID: "y"
+          },
+          {
+            type: "line",
+            label: "Ingreso ($)",
+            tension: 0.4,
+            data: data.map(it => it[1].ingreso),
+            yAxisID: "y1"
+          }
+        ]
+      }
+
+      this.distrubuion_horaria_valor.set(dataset);
+    }
+
+    // Cargar tabla top actividades
+    {
+      type DataGraphic = {
+        [k:string]: {
+          os: number,
+          ingreso: number,
+        }
+      }
+
+      const data = Object.entries(
+        result.reduce<DataGraphic>((acc, cur) => {
+          if (cur.tipo_actividad) {
+            if (!acc[cur.tipo_actividad]) {
+              acc[cur.tipo_actividad] = {
+                os: 0,
+                ingreso: 0
+              }
+            }
+
+            if (cur.estado == EstadoOrdenes.EFECTIVA || cur.estado == EstadoOrdenes.FALLIDA) {
+              acc[cur.tipo_actividad].os += 1;
+              acc[cur.tipo_actividad].ingreso += cur.valor_unitario;
+            }
+          }
+
+          return acc;
+        }, {})
+      ).map<TipoActividadesDts>(it => ({
+        actividad:it[0],
+        os: it[1].os,
+        ingreso: it[1].ingreso,
+      }))
+      .filter(it => it.ingreso > 0)
+      .sort((a,b) => b.ingreso - a.ingreso)
+
+      this.top_actividades.set(data);
+    }
+
+    // Cargar grafico Evolución Diaria
+    {
+      type DataGraphic = {
+        [k:string]: {
+          efectivas: number,
+          fallidas_pagas: number,
+          fallidas: number
+        }
+      }
+
+      const data = Object.entries(
+        result.reduce<DataGraphic>((acc, cur) => {
+          if (!acc[cur.periodo_dia]) {
+            acc[cur.periodo_dia] = {
+              efectivas: 0,
+              fallidas_pagas: 0,
+              fallidas: 0
+            }
+          }
+
+          if (cur.estado == EstadoOrdenes.EFECTIVA) {
+            acc[cur.periodo_dia].efectivas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.FALLIDA) {
+            acc[cur.periodo_dia].fallidas_pagas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.PERDIDA) {
+            acc[cur.periodo_dia].fallidas += 1;
+          }
+
+          return acc;
+        }, {})
+      ).sort((a,b) => a[0].localeCompare(b[0]));
+
+      const dataset: ChartData = {
+        labels: data.map(it => it[0]),
+        datasets: [
+          {
+            type: "bar",
+            label: "Efectivas",
+            data: data.map(it => it[1].efectivas)
+          },
+          {
+            type: "bar",
+            label: "Fallidas Paga",
+            data: data.map(it => it[1].fallidas_pagas)
+          },
+          {
+            type: "bar",
+            label: "Fallida",
+            data: data.map(it => it[1].fallidas)
+          }
+        ]
+      }
+
+      this.evolucion_diaria.set(dataset);
+    }
+
+    // Cargar Rendimiento de brigada
+    {
+      type DataGraphic = {
+        [k:string]: {
+          efectivas: number,
+          fallidas_pagas: number,
+          fallidas: number,
+          caja: number
+        }
+      }
+
+      const data = Object.entries(
+        result.reduce<DataGraphic>((acc, cur) => {
+          if (!acc[cur.tipo_brigada]) {
+            acc[cur.tipo_brigada] = {
+              efectivas: 0,
+              fallidas_pagas: 0,
+              fallidas: 0,
+              caja: 0
+            }
+          }
+
+          if (cur.estado == EstadoOrdenes.EFECTIVA) {
+            acc[cur.tipo_brigada].efectivas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.FALLIDA) {
+            acc[cur.tipo_brigada].fallidas_pagas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.PERDIDA) {
+            acc[cur.tipo_brigada].fallidas += 1;
+          }
+
+          acc[cur.tipo_brigada].caja += cur.valor_unitario;
+
+          return acc;
+        }, {})
+      ).map<RendimientoBrigadaDts>(it => ({
+          brigada: it[0],
+          efectivas: it[1].efectivas,
+          fallidas_pago: it[1].fallidas_pagas,
+          fallidas: it[1].fallidas,
+          total: it[1].efectivas + it[1].fallidas_pagas + it[1].fallidas,
+          caja: it[1].caja
+        })
+      )
+      .filter(it => it.caja > 0)
+      .sort((a,b) => b.caja - a.caja)
+
+      this.rendimiento_brigada.set(data);
+    }
   }
 
   public fetch_data() {

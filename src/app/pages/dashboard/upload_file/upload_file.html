@@ -1,0 +1,24 @@
+<p-dialog header="Cargar DB" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <label for="zona">Zona</label>
+      <p-select [options]="zona_items" [fluid]="true" />
+    </div>
+    <div class="flex flex-col gap-2 justify-center">
+        <p-fileupload
+          #fu
+          mode="basic"
+          chooseLabel="Eligir"
+          chooseIcon="pi pi-upload"
+          url="cargar/maestrodb"
+          [fileLimit]="1"
+          accept=".xls,.xlsx"
+          (onUpload)="onUpload($event)" />
+    </div>
+  </div>
+  <div class="flex justify-end mt-8">
+    <p-button label="Subir archivo" (onClick)="fu.upload()" severity="secondary" />
+  </div>
+</p-dialog>
+
+<p-toast/>

@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
     imports: [
       ProgressSpinnerModule,
       BlockUIModule,
-      RouterModule,
+      RouterModule
     ],
     template: `
       <router-outlet></router-outlet>
