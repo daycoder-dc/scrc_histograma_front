@@ -1,7 +1,7 @@
 import { NgxMarqueeComponent, OmMarqueeItemDirective } from '@omnedia/ngx-marquee';
 import { ManoObraDataService } from '@/services/mano-obra-data';
-import { Component, computed, inject } from '@angular/core';
 import { DecimalPipe, NgClass } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
@@ -49,12 +49,13 @@ export class Dashboard {
         title: {display:true, text: "Recaudación ($)"}
       }
     }
-  };
+  }
 
   protected readonly options_evolucion_diaria: ChartOptions<"bar"> = {
     maintainAspectRatio: false,
     aspectRatio: 0.8,
     plugins: {
+      title: {display:true, text: "Evolución Diaria (Clic para filtrar)"},
       tooltip: {
         mode: "index",
         intersect: false
@@ -69,6 +70,15 @@ export class Dashboard {
         stacked: true,
         title: {display:true, text: "Cantidad"}
       }
+    }
+  }
+
+  protected readonly options_analisis_fallidas_accion: ChartOptions<"bar"> = {
+    indexAxis: "y",
+    maintainAspectRatio: false,
+    aspectRatio: 0.8,
+    plugins: {
+      title: {display:true, text: "Análisis de Fallidas por Acción (Click par filtrar)"}
     }
   }
 

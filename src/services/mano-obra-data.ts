@@ -464,6 +464,15 @@ export class ManoObraDataService {
 
       this.rendimiento_brigada.set(data);
     }
+
+    // Cargar grafico Analisis de fallidas por acción
+    {
+      type DataGraphic = {
+        [k:string]: {
+
+        }
+      }
+    }
   }
 
   public fetch_data() {

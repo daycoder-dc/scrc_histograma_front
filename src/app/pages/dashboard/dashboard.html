@@ -33,83 +33,106 @@
     }
   </om-marquee>
 
-  <div class="flex gap-2 flex-wrap">
-    <!-- Grafico - Distribución horaria y valor -->
-    <p-card class="w-full xl:w-[59%]">
-      <p-chart
-        type="line"
-        [data]="graph_distribucion_hora_valor"
-        [options]="options_distribucion_horaria"
-        class="h-100" />
-    </p-card>
+  <div class="flex flex-col gap-y-8">
+    <div class="flex gap-2 flex-wrap">
+      <!-- Grafico - Distribución horaria y valor -->
+      <p-card class="w-full xl:w-[59%]">
+        <p-chart
+          type="line"
+          [data]="graph_distribucion_hora_valor"
+          [options]="options_distribucion_horaria"
+          class="h-100" />
+      </p-card>
 
-    <!-- Tipo de actividades -->
-    <p-card header="Top Actividades" class="w-full xl:w-[39%]">
-      <p-table
-        size="small"
-        [scrollable]="true"
-        scrollHeight="25rem"
-        [value]="top_actividades">
-        <ng-template #header>
-          <tr>
-            <th class="bg-surface-50! dark:text-surface-600!">ACTIVIDAD</th>
-            <th class="bg-surface-50! dark:text-surface-600!">OS</th>
-            <th class="bg-surface-50! dark:text-surface-600!">INGRESO</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-item>
-          <tr>
-            <td>{{ item.actividad }}</td>
-            <td>{{ item.os }}</td>
-            <td>
-              <p-tag severity="success">${{ item.ingreso | number }}</p-tag>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-card>
-  </div>
+      <!-- Tipo de actividades -->
+      <p-card header="Top Actividades" class="w-full xl:w-[39%]">
+        <p-table
+          size="small"
+          [scrollable]="true"
+          scrollHeight="25rem"
+          [value]="top_actividades">
+          <ng-template #header>
+            <tr>
+              <th class="bg-surface-50! dark:text-surface-600!">ACTIVIDAD</th>
+              <th class="bg-surface-50! dark:text-surface-600!">OS</th>
+              <th class="bg-surface-50! dark:text-surface-600!">INGRESO</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td>{{ item.actividad }}</td>
+              <td>{{ item.os }}</td>
+              <td>
+                <p-tag severity="success">${{ item.ingreso | number }}</p-tag>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
 
-  <div class="flex gap-2 flex-wrap">
-    <!-- Evolución Diaria -->
-     <p-card header="Evolución Diaria (Clic para filtrar)" class="w-full xl:w-59%">
-      <p-chart
-        type="bar"
-        [data]="evolucion_diaria"
-        [options]="options_evolucion_diaria"
-        class="h-100"/>
-     </p-card>
-    <!-- Rendimiento de brigada -->
-    <p-card header="Rendimiento de Brigada" class="w-full xl:w-[39%]">
-      <p-table
-        size="small"
-        [scrollable]="true"
-        scrollHeight="25rem"
-        [value]="rendimiento_brigada">
-        <ng-template #header>
-          <tr>
-            <th class="bg-surface-50! dark:text-surface-600!">BRIGADA</th>
-            <th class="bg-surface-50! dark:text-surface-600!">EFE</th>
-            <th class="bg-surface-50! dark:text-surface-600!">F.PAGA</th>
-            <th class="bg-surface-50! dark:text-surface-600!">FALLA</th>
-            <th class="bg-surface-50! dark:text-surface-600!">TOTAL</th>
-            <th class="bg-surface-50! dark:text-surface-600!">CAJA</th>
-          </tr>
-        </ng-template>
-        <ng-template #body let-item>
-          <tr>
-            <td>{{ item.brigada }}</td>
-            <td>{{ item.efectivas }}</td>
-            <td>{{ item.fallidas_pago }}</td>
-            <td>{{ item.fallidas }}</td>
-            <td>{{ item.total }}</td>
-            <td>
-              <p-tag severity="success">${{ item.caja | number }}</p-tag>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-card>
+    <div class="flex gap-2 flex-wrap">
+      <!-- Evolución Diaria -->
+       <p-card class="w-full xl:w-[59%]">
+        <p-chart
+          type="bar"
+          [data]="evolucion_diaria"
+          [options]="options_evolucion_diaria"
+          class="h-100"/>
+       </p-card>
+      <!-- Rendimiento de brigada -->
+      <p-card header="Rendimiento de Brigada" class="w-full xl:w-[39%]">
+        <p-table
+          size="small"
+          [scrollable]="true"
+          scrollHeight="25rem"
+          [value]="rendimiento_brigada">
+          <ng-template #header>
+            <tr>
+              <th class="bg-surface-50! dark:text-surface-600!">BRIGADA</th>
+              <th class="bg-surface-50! dark:text-surface-600!">EFE</th>
+              <th class="bg-surface-50! dark:text-surface-600!">F.PAGA</th>
+              <th class="bg-surface-50! dark:text-surface-600!">FALLA</th>
+              <th class="bg-surface-50! dark:text-surface-600!">TOTAL</th>
+              <th class="bg-surface-50! dark:text-surface-600!">CAJA</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-item>
+            <tr>
+              <td>
+                <span>{{ item.brigada }}</span>
+              </td>
+              <td>
+                <span class="font-bold">{{ item.efectivas }}</span>
+              </td>
+              <td>
+                <span class="text-blue-500">{{ item.fallidas_pago }}</span>
+              </td>
+              <td>
+                <span class="text-red-500">{{ item.fallidas }}</span>
+              </td>
+              <td>
+                <span class="font-semibold">{{ item.total }}</span>
+              </td>
+              <td>
+                <p-tag severity="success">${{ item.caja | number }}</p-tag>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+
+    <div class="flex gap-2 flow-wrap">
+      <!-- Análisis de Fallidas por Acción -->
+      <p-card class="w-full">
+        <p-chart
+          type="bar"
+          [data]="null"
+          [options]="options_analisis_fallidas_accion"
+          class="h-100" />
+      </p-card>
+    </div>
   </div>
 </div>
 
