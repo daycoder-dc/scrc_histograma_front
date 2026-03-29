@@ -15,6 +15,7 @@
     </div>
     <div class="flex flex-col gap-2 justify-center">
         <p-fileupload
+          #fu
           id="file_upload"
           mode="basic"
           chooseLabel="Eligir archivo ..."
@@ -28,7 +29,7 @@
     </div>
   </div>
   <div class="flex justify-end mt-8">
-    <p-button label="Subir archivo" severity="secondary" (onClick)="on_send_file($event)" />
+    <p-button label="Subir archivo" severity="secondary" (onClick)="on_send_file($event, fu)" />
   </div>
 </p-dialog>
 

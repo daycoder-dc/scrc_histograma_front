@@ -1,8 +1,10 @@
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { FileUpload, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { Component, effect, inject, model } from '@angular/core';
+import { ConfirmDialogModule } from "primeng/confirmdialog";
+import { BlockHttpService } from '@/services/block_http';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
@@ -34,6 +36,8 @@ export class DashboardUploadFile {
 
   private readonly dialog = inject(ConfirmationService);
   private readonly alert = inject(MessageService);
+  private readonly http = inject(HttpClient);
+  private readonly block = inject(BlockHttpService);
 
   protected readonly form = new FormGroup({
     zona: new FormControl<string | null>(null, {validators: Validators.required}),
@@ -58,19 +62,18 @@ export class DashboardUploadFile {
     this.form.controls.file.setValue(event.files[0]);
   }
 
-  protected on_send_file(event:Event) {
-    const controls = [
-      this.form.controls.zona,
-      this.form.controls.file
-    ];
-
-    controls.forEach(it => {
-      if (it.invalid) it.markAsTouched();
+  protected on_send_file(event:Event, fu:FileUpload) {
+    Object.values(this.form.controls).forEach((control, _) => {
+      if (control.invalid) control.markAsTouched();
     })
 
-    if (controls.some(it => it.invalid == true)) {
+    if (Object.values(this.form.controls).some(it => it.invalid == true)) {
       return;
     }
+
+    const data = new FormData();
+    data.append("zona", this.form.controls.zona.value!);
+    data.append("file", this.form.controls.file.value!);
 
     this.dialog.confirm({
       target: event.target as EventTarget,
@@ -87,8 +90,28 @@ export class DashboardUploadFile {
         severity: "primary"
       },
       accept: () => {
-        this.alert.add({ severity: 'info', summary: 'Success', detail: 'Cargando archivo' });
-        this.visible.set(false);
+        this.block.enable();
+
+        this.http.post("/api/v1/history/upload", data).subscribe({
+          next: (res) => {
+            console.log(res);
+            this.block.disable();
+            this.alert.add({ severity: 'info', summary: 'Success', detail: 'El archivo está siendo procesado.' });
+            this.visible.set(false);
+          },
+          error: (e:HttpErrorResponse) => {
+            let detail = "No se pudo cargar el archivo.";
+
+            console.error(e);
+            this.block.disable();
+
+            if (e.error?.description == "FILE_ALREADY_UPLOADED") {
+              detail = "Este archivo ya fue cargado."
+            }
+
+            this.alert.add({ severity: 'error', summary: 'Error', detail: detail });
+          }
+        });
       }
     });
   }
