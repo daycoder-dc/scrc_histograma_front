@@ -10,7 +10,8 @@ import { ChartData} from "chart.js";
 export class DashboardService {
   private readonly block = inject(BlockHttpService);
   private readonly http = inject(HttpClient);
-  private readonly socket = io({
+
+  public readonly socket = io({
     path: "/api/socket.io",
     transports: ["websocket"],
     autoConnect: true,
@@ -191,10 +192,6 @@ export class DashboardService {
     this.form_filters.controls.actividad.valueChanges.subscribe(() => {
       this.load_dataset();
     });
-
-    this.socket.on("connected", (obj) => {
-      console.log("Connected")
-    })
   }
 
   private load_dataset() {

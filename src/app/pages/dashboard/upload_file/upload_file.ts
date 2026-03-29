@@ -92,24 +92,35 @@ export class DashboardUploadFile {
       accept: () => {
         this.block.enable();
 
-        this.http.post("/api/v1/history/upload", data).subscribe({
+        this.http.post<Record<string,string>>("/api/v1/history/upload", data).subscribe({
           next: (res) => {
-            console.log(res);
             this.block.disable();
-            this.alert.add({ severity: 'info', summary: 'Success', detail: 'El archivo está siendo procesado.' });
+
+            this.alert.add({
+              severity: 'info',
+              summary: 'Success',
+              detail: 'El archivo está siendo procesado.'
+            });
+
             this.visible.set(false);
+            sessionStorage.setItem("archivo_id", res["id"]);
           },
           error: (e:HttpErrorResponse) => {
             let detail = "No se pudo cargar el archivo.";
 
-            console.error(e);
             this.block.disable();
 
             if (e.error?.description == "FILE_ALREADY_UPLOADED") {
               detail = "Este archivo ya fue cargado."
             }
 
-            this.alert.add({ severity: 'error', summary: 'Error', detail: detail });
+            this.alert.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: detail
+            });
+
+            console.error(e);
           }
         });
       }

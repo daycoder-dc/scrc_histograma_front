@@ -5,9 +5,11 @@ import { Component, inject } from '@angular/core';
 import { MessageModule } from "primeng/message";
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
+import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { ChartOptions } from "chart.js";
 import { TagModule } from "primeng/tag";
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,14 +21,18 @@ import { TagModule } from "primeng/tag";
     ChartModule,
     DecimalPipe,
     TableModule,
-
+    ToastModule,
     CardModule,
     TagModule,
     NgClass,
+  ],
+  providers: [
+    MessageService
   ]
 })
 export class Dashboard {
   private readonly service = inject(DashboardService);
+  private readonly alert = inject(MessageService);
 
   protected readonly options_distribucion_horaria: ChartOptions<"line"> = {
     responsive: true,
@@ -83,6 +89,34 @@ export class Dashboard {
     plugins: {
       title: {display:true, text: "Análisis de Fallidas por Acción (Click par filtrar)"}
     }
+  }
+
+  constructor () {
+    this.service.socket.on("FILE_LOAD_SUCCESS", (id:string) => {
+      const archivo_id = sessionStorage.getItem("archivo_id");
+
+      if (archivo_id == id) {
+        this.alert.add({
+          severity: "success",
+          summary: "Success",
+          detail: "Archivo cargado satisfactoriamente"
+        });
+
+        this.service.fetch_data();
+      }
+    });
+
+    this.service.socket.on("FILE_LOAD_ERROR", (id:string) => {
+      const archivo_id  = sessionStorage.getItem("archivo_id");
+
+      if (archivo_id == id) {
+        this.alert.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Hubo un error en el procesamiento del archivo."
+        });
+      }
+    });
   }
 
   protected ngOnInit() {
