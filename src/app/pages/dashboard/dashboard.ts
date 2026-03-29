@@ -1,29 +1,32 @@
 import { NgxMarqueeComponent, OmMarqueeItemDirective } from '@omnedia/ngx-marquee';
-import { ManoObraDataService } from '@/services/mano-obra-data';
+import { DashboardService } from '@/services/dashboard.service';
 import { DecimalPipe, NgClass } from '@angular/common';
 import { Component, inject } from '@angular/core';
+import { MessageModule } from "primeng/message";
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
-import { TagModule } from "primeng/tag"
-import { ChartOptions } from "chart.js"
+import { ChartOptions } from "chart.js";
+import { TagModule } from "primeng/tag";
 
 @Component({
   selector: 'app-dashboard',
+  templateUrl: "./dashboard.html",
   imports: [
     OmMarqueeItemDirective,
     NgxMarqueeComponent,
+    MessageModule,
     ChartModule,
-    CardModule,
     DecimalPipe,
     TableModule,
+
+    CardModule,
     TagModule,
     NgClass,
-  ],
-  templateUrl: "./dashboard.html"
+  ]
 })
 export class Dashboard {
-  private readonly mano_obra = inject(ManoObraDataService);
+  private readonly service = inject(DashboardService);
 
   protected readonly options_distribucion_horaria: ChartOptions<"line"> = {
     responsive: true,
@@ -83,26 +86,26 @@ export class Dashboard {
   }
 
   protected ngOnInit() {
-    this.mano_obra.fetch_data();
+    this.service.fetch_data();
   }
 
   protected get indicadores() {
-    return this.mano_obra.indicadores();
+    return this.service.indicadores();
   }
 
   protected get graph_distribucion_hora_valor() {
-    return this.mano_obra.distrubuion_horaria_valor()
+    return this.service.distrubuion_horaria_valor()
   }
 
   protected get top_actividades() {
-    return this.mano_obra.top_actividades();
+    return this.service.top_actividades();
   }
 
   protected get evolucion_diaria() {
-    return this.mano_obra.evolucion_diaria()
+    return this.service.evolucion_diaria()
   }
 
   protected get rendimiento_brigada() {
-    return this.mano_obra.rendimiento_brigada()
+    return this.service.rendimiento_brigada()
   }
 }

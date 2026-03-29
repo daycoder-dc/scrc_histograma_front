@@ -1,5 +1,5 @@
 import { MultiSelectChangeEvent, MultiSelectModule } from "primeng/multiselect";
-import { ManoObraDataService } from "@/services/mano-obra-data";
+import { DashboardService } from "@/services/dashboard.service";
 import { ReactiveFormsModule } from "@angular/forms";
 import { Component, inject } from "@angular/core";
 
@@ -12,29 +12,29 @@ import { Component, inject } from "@angular/core";
   templateUrl: "./filters.html"
 })
 export class DashboardFilter {
-  private readonly mano_obra = inject(ManoObraDataService);
+  private readonly service = inject(DashboardService);
 
   protected get proyectos() {
-    return this.mano_obra.proyectos();
+    return this.service.proyectos();
   }
 
   protected get periodos() {
-    return this.mano_obra.periodos();
+    return this.service.periodos();
   }
 
   protected get brigadas() {
-    return this.mano_obra.brigadas();
+    return this.service.brigadas();
   }
 
   protected get tecnicos() {
-    return this.mano_obra.tecnicos();
+    return this.service.tecnicos();
   }
 
   protected get actividad() {
-    return this.mano_obra.actividad();
+    return this.service.actividad();
   }
 
   protected get form() {
-    return this.mano_obra.form_filters;
+    return this.service.form_filters;
   }
 }

@@ -1,24 +1,36 @@
 <p-dialog header="Cargar DB" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
-  <div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
+  <div class="flex flex-col gap-4" [formGroup]="form">
+    <div class="flex flex-col gap-1">
       <label for="zona">Zona</label>
-      <p-select [options]="zona_items" [fluid]="true" />
+      <p-select
+        formControlName="zona"
+        id="zona_file"
+        [options]="zona_items"
+        [fluid]="true"
+        placeholder="Seleccionar zona"
+        [invalid]="is_invalid('zona')" />
+        @if (is_invalid('zona')) {
+          <p-message severity="error" size="small" variant="simple">requerido</p-message>
+        }
     </div>
     <div class="flex flex-col gap-2 justify-center">
         <p-fileupload
-          #fu
+          id="file_upload"
           mode="basic"
-          chooseLabel="Eligir"
+          chooseLabel="Eligir archivo ..."
           chooseIcon="pi pi-upload"
-          url="cargar/maestrodb"
           [fileLimit]="1"
           accept=".xls,.xlsx"
-          (onUpload)="onUpload($event)" />
+          (onSelect)="on_upload($event)"/>
+        @if (is_invalid('file')) {
+          <p-message severity="error" size="small" variant="simple">requerido</p-message>
+        }
     </div>
   </div>
   <div class="flex justify-end mt-8">
-    <p-button label="Subir archivo" (onClick)="fu.upload()" severity="secondary" />
+    <p-button label="Subir archivo" severity="secondary" (onClick)="on_send_file($event)" />
   </div>
 </p-dialog>
 
 <p-toast/>
+<p-confirmdialog />

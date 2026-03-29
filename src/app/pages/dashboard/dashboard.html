@@ -34,7 +34,7 @@
   </om-marquee>
 
   <div class="flex flex-col gap-y-8">
-    <div class="flex gap-2 flex-wrap">
+    <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Grafico - Distribución horaria y valor -->
       <p-card class="w-full xl:w-[59%]">
         <p-chart
@@ -53,9 +53,9 @@
           [value]="top_actividades">
           <ng-template #header>
             <tr>
-              <th class="bg-surface-50! dark:text-surface-600!">ACTIVIDAD</th>
-              <th class="bg-surface-50! dark:text-surface-600!">OS</th>
-              <th class="bg-surface-50! dark:text-surface-600!">INGRESO</th>
+              <th>ACTIVIDAD</th>
+              <th>OS</th>
+              <th>INGRESO</th>
             </tr>
           </ng-template>
           <ng-template #body let-item>
@@ -71,7 +71,7 @@
       </p-card>
     </div>
 
-    <div class="flex gap-2 flex-wrap">
+    <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Evolución Diaria -->
        <p-card class="w-full xl:w-[59%]">
         <p-chart
@@ -89,12 +89,12 @@
           [value]="rendimiento_brigada">
           <ng-template #header>
             <tr>
-              <th class="bg-surface-50! dark:text-surface-600!">BRIGADA</th>
-              <th class="bg-surface-50! dark:text-surface-600!">EFE</th>
-              <th class="bg-surface-50! dark:text-surface-600!">F.PAGA</th>
-              <th class="bg-surface-50! dark:text-surface-600!">FALLA</th>
-              <th class="bg-surface-50! dark:text-surface-600!">TOTAL</th>
-              <th class="bg-surface-50! dark:text-surface-600!">CAJA</th>
+              <th>BRIGADA</th>
+              <th>EFE</th>
+              <th>F.PAGA</th>
+              <th>FALLA</th>
+              <th>TOTAL</th>
+              <th>CAJA</th>
             </tr>
           </ng-template>
           <ng-template #body let-item>
@@ -123,9 +123,9 @@
       </p-card>
     </div>
 
-    <div class="flex gap-2 flow-wrap">
+    <div class="flex justify-between gap-y-8 flow-wrap">
       <!-- Análisis de Fallidas por Acción -->
-      <p-card class="w-full">
+      <p-card class="w-full xl:w-[59%]">
         <p-chart
           type="bar"
           [data]="null"
@@ -135,4 +135,3 @@
     </div>
   </div>
 </div>
-
