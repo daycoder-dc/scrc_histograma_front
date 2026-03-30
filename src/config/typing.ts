@@ -18,13 +18,13 @@ export type RendimientoBrigadaDts = {
   caja: number
 }
 
-export type ManoObraData = {
+export type HistoryData = {
   nic: string,
   orden: string,
   zona: string,
-  tipo_brigada: string,
+  tipo_brigada: string | null,
   tipo_os: string,
-  tecnico: string,
+  tecnico: string | null,
   periodo: string,
   fecha: string,
   hora: string,
@@ -32,11 +32,12 @@ export type ManoObraData = {
   estado: string,
   valor_unitario: number,
   tipo_actividad: string,
-  periodo_dia: string
+  periodo_dia: string,
+  accion: string
 }
 
 export enum EstadoOrdenes {
   EFECTIVA = "Efectiva",
-  FALLIDA = "Fallida",
-  PERDIDA = "Perdida"
+  FALLIDA_PAGA = "Fallida",
+  FALLIDA = "Perdida"
 }

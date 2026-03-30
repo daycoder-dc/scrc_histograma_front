@@ -1,5 +1,5 @@
-import { MultiSelectChangeEvent, MultiSelectModule } from "primeng/multiselect";
 import { DashboardService } from "@/services/dashboard.service";
+import { MultiSelectModule } from "primeng/multiselect";
 import { ReactiveFormsModule } from "@angular/forms";
 import { Component, inject } from "@angular/core";
 

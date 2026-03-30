@@ -1,8 +1,8 @@
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FileUpload, FileUploadHandlerEvent, FileUploadModule } from 'primeng/fileupload';
+import { Component, effect, inject, model, viewChild } from '@angular/core';
+import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { Component, effect, inject, model } from '@angular/core';
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { BlockHttpService } from '@/services/block_http';
 import { InputTextModule } from 'primeng/inputtext';
@@ -18,13 +18,13 @@ import { ToastModule } from 'primeng/toast';
   imports: [
     ReactiveFormsModule,
     ConfirmDialogModule,
-    FileUploadModule,
     InputTextModule,
     MessageModule,
     DialogModule,
     ButtonModule,
     SelectModule,
     ToastModule,
+    FileUpload,
   ],
   providers: [
     ConfirmationService,
@@ -39,6 +39,7 @@ export class DashboardUploadFile {
   private readonly http = inject(HttpClient);
   private readonly block = inject(BlockHttpService);
 
+  protected readonly file_upload = viewChild(FileUpload)
   protected readonly form = new FormGroup({
     zona: new FormControl<string | null>(null, {validators: Validators.required}),
     file: new FormControl<File | null>(null,{ validators: Validators.required})
@@ -52,8 +53,11 @@ export class DashboardUploadFile {
 
   constructor() {
     effect(() => {
+      const component = this.file_upload();
+
       if (this.visible() == false) {
         this.form.reset();
+        component?.clear();
       }
     });
   }
