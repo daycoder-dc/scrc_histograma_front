@@ -1,12 +1,29 @@
 <div class="flex flex-col gap-y-4">
   <!-- top panel -->
-  <div class="flex justify-between items-center">
-    <div class="flex">
-      <h3 class="font-bold">Panel de Control SCR</h3>
+  <div class="flex flex-col gap-2">
+    <div class="flex justify-between items-center">
+      <div class="flex">
+        <h3 class="font-bold">Panel de Control SCR</h3>
+      </div>
+      <div class="flex flex-col items-end">
+        <span class="font-bold">{{ data_fa }}</span>
+        <span class="text-xs">Datos actualzados en tiempo real</span>
+      </div>
     </div>
-    <div class="flex flex-col items-end">
-      <span class="font-bold">17 de marzo de 2026</span>
-      <span class="text-xs">Datos actualzados en tiempo real</span>
+    <!-- filtro graficos -->
+    <div class="flex items-center gap-2 flex-wrap">
+      @for (item of filters_afa; track $index) {
+        <p-chip [removable]="true"
+          (onRemove)="on_afa_remove($index)">
+          <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Acción:&nbsp;{{ item }}</span>
+        </p-chip>
+      }
+      @for (item of filters_ed; track $index) {
+        <p-chip [removable]="true"
+          (onRemove)="on_ed_remove($index)">
+          <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Día:&nbsp;{{ item }}</span>
+        </p-chip>
+      }
     </div>
   </div>
 
@@ -36,21 +53,28 @@
   <div class="flex flex-col gap-y-8">
     <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Grafico - Distribución horaria y valor -->
-      <p-card class="w-full xl:w-[59%]">
+      <p-card class="w-full xl:w-[59%]"
+        pAnimateOnScroll
+        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+        leaveClass="animate-leave fade-out-0">
         <p-chart
           type="line"
-          [data]="graph_distribucion_hora_valor"
-          [options]="options_distribucion_horaria"
+          [data]="data_dh"
+          [options]="options_dh"
           class="h-100" />
       </p-card>
 
       <!-- Tipo de actividades -->
-      <p-card header="Top Actividades" class="w-full xl:w-[39%]">
+      <p-card class="w-full xl:w-[39%]"
+        header="Top Actividades"
+        pAnimateOnScroll
+        enterClass="animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000"
+        leaveClass="animate-leave fade-out-0">
         <p-table
           size="small"
           [scrollable]="true"
           scrollHeight="25rem"
-          [value]="top_actividades">
+          [value]="data_ta">
           <ng-template #header>
             <tr>
               <th>ACTIVIDAD</th>
@@ -73,20 +97,27 @@
 
     <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Evolución Diaria -->
-       <p-card class="w-full xl:w-[59%]">
+       <p-card class="w-full xl:w-[59%]"
+          pAnimateOnScroll
+          enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+          leaveClass="animate-leave fade-out-0">
         <p-chart
           type="bar"
-          [data]="evolucion_diaria"
-          [options]="options_evolucion_diaria"
+          [data]="data_ed"
+          [options]="options_ed"
           class="h-100"/>
        </p-card>
       <!-- Rendimiento de brigada -->
-      <p-card header="Rendimiento de Brigada" class="w-full xl:w-[39%]">
+      <p-card class="w-full xl:w-[39%]"
+        header="Rendimiento de Brigada"
+        pAnimateOnScroll
+        enterClass="animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000"
+        leaveClass="animate-leave fade-out-0">
         <p-table
           size="small"
           [scrollable]="true"
           scrollHeight="25rem"
-          [value]="rendimiento_brigada">
+          [value]="data_rb">
           <ng-template #header>
             <tr>
               <th>BRIGADA</th>
@@ -125,12 +156,15 @@
 
     <div class="flex justify-between gap-y-8 flow-wrap">
       <!-- Análisis de Fallidas por Acción -->
-      <p-card class="w-full xl:w-[59%]">
+      <p-card class="w-full"
+        pAnimateOnScroll
+        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+        leaveClass="animate-leave fade-out-0">
         <p-chart
           type="bar"
-          [data]="analisis_fallidas_accion"
-          [options]="options_analisis_fallidas_accion"
-          class="h-160" />
+          [data]="data_afa"
+          [options]="options_afa"
+          class="h-120" />
       </p-card>
     </div>
   </div>

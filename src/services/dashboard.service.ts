@@ -1,11 +1,12 @@
-import { EstadoOrdenes, FilterItem, HistoryData,
+import { DateUpdateData, EstadoOrdenes, FilterItem, HistoryData,
   RendimientoBrigadaDts, TipoActividadesDts } from "@/config/typing";
 import { computed, inject, Injectable, signal } from "@angular/core";
+import { ChartOptions, ChartData, Chart } from "chart.js";
 import { FormControl, FormGroup } from "@angular/forms";
+import chartDataLabels from "chartjs-plugin-datalabels";
 import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
 import { io } from "socket.io-client";
-import { ChartData} from "chart.js";
 
 @Injectable({providedIn:"root"})
 export class DashboardService {
@@ -71,6 +72,8 @@ export class DashboardService {
   public readonly periodos = signal<FilterItem[]>([]);
   public readonly brigadas = signal<FilterItem[]>([]);
   public readonly tecnicos = signal<FilterItem[]>([]);
+  public readonly afa = signal<string[]>([]);
+  public readonly ed = signal<string[]>([]);
 
   public readonly actividad = signal<FilterItem[]>([
     {label:"Suspensión", value: "1"},
@@ -87,13 +90,143 @@ export class DashboardService {
   });
 
   // Datos dashboard
+  public readonly fecha_acualizacion = signal("---");
   public readonly distrubuion_horaria_valor = signal<ChartData | null>(null);
   public readonly evolucion_diaria = signal<ChartData | null>(null);
   public readonly top_actividades = signal<TipoActividadesDts[]>([]);
   public readonly rendimiento_brigada = signal<RendimientoBrigadaDts[]>([]);
   public readonly analisis_fallidas_accion = signal<ChartData | null>(null);
 
+  // Configuracion de las opciones de los graficos chart.js
+  public readonly options_distribucion_horaria: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    aspectRatio: 0.6,
+    plugins: {
+      title: { display: true, text: "Distribución Horaria y Valor" },
+      datalabels: { display: false }
+    },
+    scales: {
+      y: {
+        type: "linear",
+        display: true,
+        position: "left",
+        title: { display: true, text: "Cantidad de OS" }
+      },
+      y1: {
+        type: "linear",
+        display: true,
+        position: "right",
+        grid: { drawOnChartArea: false },
+        title: { display:true, text: "Recaudación ($)" }
+      }
+    }
+  }
+
+  public readonly options_evolucion_diaria: ChartOptions<"bar"> = {
+    maintainAspectRatio: false,
+    aspectRatio: 0.8,
+    plugins: {
+      title: {display:true, text: "Evolución Diaria (Clic para filtrar)"},
+      tooltip: { mode: "index", intersect: false },
+      datalabels: { display: false }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        title: { display:true, text: "Día del Mes" }
+      },
+      y: {
+        stacked: true,
+        title: { display:true, text: "Cantidad" }
+      }
+    },
+    onClick: (event, elements, chart) => {
+      const dia = chart.data?.labels![elements[0]?.index] as string | undefined;
+      const data = this.ed();
+
+      if (dia) {
+        data.push(dia);
+        this.ed.set(data);
+        this.load_dataset();
+      }
+    }
+  }
+
+  public readonly options_analisis_fallidas_accion: ChartOptions<"bar"> = {
+    indexAxis: "y",
+    maintainAspectRatio: false,
+    aspectRatio: 0.8,
+    plugins: {
+      title: { display:true, text: "Análisis de Fallidas por Acción (Click par filtrar)" },
+      datalabels: {
+        anchor: "end",
+        align: "end",
+        formatter: (value, ctx) => {
+          const datasets = ctx.chart.data.datasets;
+          const dt1 = datasets[0].data[ctx.dataIndex] || 0;
+          const dt2 = datasets[1].data[ctx.dataIndex] || 0;
+          const total = this.total_ordenes();
+          const percentage = (value / total) * 100;
+
+          if (ctx.datasetIndex == 0)  {
+            if (dt1 < dt2) return null;
+            if (dt1 == dt2) return null;
+          }
+
+          if (ctx.datasetIndex == 1)  {
+            if (dt2 < dt1) return null;
+          }
+
+          return (percentage >= 0.01 ? percentage.toFixed(2) : 0) + "%";
+        }
+      },
+      tooltip: {
+        mode: "index",
+        intersect: false
+      }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        beginAtZero: true,
+        title: { display: true, text: "Cantidad de OS" },
+      },
+      y: {
+        stacked: true,
+        ticks: {
+          autoSkip: false,
+          callback: function (value) {
+            const label = this.getLabelForValue(value as number);
+            const max_lengthh = 24;
+
+            if (label && label.length > max_lengthh) {
+              return label.substring(0, max_lengthh) + ' ...';
+            }
+
+            return label;
+          }
+        }
+      }
+    },
+    layout: {
+      padding: { right: 50 }
+    },
+    onClick: (event, elements, chart) => {
+      const categoria = chart.data?.labels![elements[0]?.index] as string | undefined;
+      const data = this.afa();
+
+      if (categoria) {
+        data.push(categoria);
+        this.afa.set(data);
+        this.load_dataset();
+      }
+    }
+  }
+
   constructor () {
+    Chart.register(chartDataLabels);
+
     this.form_filters.controls.proyectos.valueChanges.subscribe(() => {
       const proyectos = this.form_filters.controls.proyectos.value ?? [];
 
@@ -150,7 +283,6 @@ export class DashboardService {
             ).map(it => it.tipo_brigada)
           )
         )
-        .filter(it => it != null)
         .map<FilterItem>(it => ({label:it, value:it}));
 
         this.brigadas.set(brigadas);
@@ -178,7 +310,7 @@ export class DashboardService {
             data.filter(it =>
               proyectos.includes(it.zona) &&
               periodos.includes(it.periodo) &&
-              (it.tipo_brigada && brigadas.includes(it.tipo_brigada))
+              brigadas.includes(it.tipo_brigada)
             ).map(it => it.tecnico)
           )
         )
@@ -200,12 +332,14 @@ export class DashboardService {
     });
   }
 
-  private load_dataset() {
+  public load_dataset() {
     const proyectos = this.form_filters.controls.proyectos.value ?? [];
     const periodos = this.form_filters.controls.periodos.value ?? [];
     const brigadas = this.form_filters.controls.brigadas.value ?? [];
     const tecnicos = this.form_filters.controls.tecnicos.value ?? [];
     const actividad = this.form_filters.controls.actividad.value ?? [];
+    const afa = this.afa();
+    const ed = this.ed();
 
     const dataset = this.dataset();
 
@@ -225,12 +359,22 @@ export class DashboardService {
         )
       && (
           brigadas.length > 0 ?
-          (it.tipo_brigada && brigadas.includes(it.tipo_brigada)) :
+          brigadas.includes(it.tipo_brigada) :
           true
         )
       && (
         tecnicos.length > 0 ?
         (it.tecnico && tecnicos.includes(it.tecnico)) :
+        true
+      )
+      && (
+        afa.length > 0 ?
+        afa.includes(it.accion) :
+        true
+      )
+      && (
+        ed.length > 0 ?
+        ed.includes(it.periodo_dia) :
         true
       )
     );
@@ -438,30 +582,28 @@ export class DashboardService {
 
       const data = Object.entries(
         result.reduce<DataGraphic>((acc, cur) => {
-          if (cur.tipo_brigada) {
-            if (!acc[cur.tipo_brigada]) {
-              acc[cur.tipo_brigada] = {
-                efectivas: 0,
-                fallidas_pagas: 0,
-                fallidas: 0,
-                caja: 0
-              }
+          if (!acc[cur.tipo_brigada]) {
+            acc[cur.tipo_brigada] = {
+              efectivas: 0,
+              fallidas_pagas: 0,
+              fallidas: 0,
+              caja: 0
             }
-
-            if (cur.estado == EstadoOrdenes.EFECTIVA) {
-              acc[cur.tipo_brigada].efectivas += 1;
-            }
-
-            if (cur.estado == EstadoOrdenes.FALLIDA_PAGA) {
-              acc[cur.tipo_brigada].fallidas_pagas += 1;
-            }
-
-            if (cur.estado == EstadoOrdenes.FALLIDA) {
-              acc[cur.tipo_brigada].fallidas += 1;
-            }
-
-            acc[cur.tipo_brigada].caja += cur.valor_unitario;
           }
+
+          if (cur.estado == EstadoOrdenes.EFECTIVA) {
+            acc[cur.tipo_brigada].efectivas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.FALLIDA_PAGA) {
+            acc[cur.tipo_brigada].fallidas_pagas += 1;
+          }
+
+          if (cur.estado == EstadoOrdenes.FALLIDA) {
+            acc[cur.tipo_brigada].fallidas += 1;
+          }
+
+          acc[cur.tipo_brigada].caja += cur.valor_unitario;
 
           return acc;
         }, {})
@@ -491,7 +633,10 @@ export class DashboardService {
       }
 
       type DataGraphicV2 = {
-
+        label:string,
+        fallidas: number,
+        fallidas_paga: number,
+        total: number
       }
 
       const data = Object.entries(
@@ -526,39 +671,28 @@ export class DashboardService {
           fallidas: cur[1].fallidas,
           fallidas_paga: cur[1].fallidas_paga,
           total: cur[1].total
-        })
+        });
+
         return acc;
       }, [])
+      .filter(it => it.total > 0)
+      .sort((a,b) => b.total - a.total);
 
-      // const labels = Array.from(
-      //   new Set([
-      //     ... Object.keys(data.fallidas_paga),
-      //     ... Object.keys(data.fallidas)
-      //   ])
-      // );
+      const dataset: ChartData = {
+        labels: data.map(it => it.label),
+        datasets: [
+          {
+            label: "Fallidas (Sin Recaudación)",
+            data: data.map(it => it.fallidas),
+          },
+          {
+            label: "Fallidas Pagas (C/Recaudación)",
+            data: data.map(it => it.fallidas_paga),
+          }
+        ]
+      };
 
-      // const dataset: ChartData = {
-      //   labels: labels,
-      //   datasets: [
-      //     {
-      //       label: "Fallidas (Sin Recaudación)",
-      //       data: labels.map(it => data.fallidas[it]),
-      //       barThickness: 6,
-      //     },
-      //     {
-      //       label: "Fallidas Pagas (C/Recaudación)",
-      //       data: labels.map(it => data.fallidas_paga[it]),
-      //       barThickness: 6,
-      //     }
-      //   ]
-      // };
-
-      // this.analisis_fallidas_accion.set(dataset);
-
-      console.clear();
-      // console.log(dataset);
-      // console.log(labels);
-      console.log(data);
+      this.analisis_fallidas_accion.set(dataset);
     }
   }
 
@@ -585,6 +719,26 @@ export class DashboardService {
       error: (err) => {
         console.error(err);
         this.block.disable();
+      }
+    });
+
+    this.http.get<DateUpdateData[]>("/api/v1/history/get%20update%20date").subscribe({
+      next: (res) => {
+        const result = res.at(0)?.fecha_registro;
+
+        if (result) {
+          const date = new Date(result);
+          const date_forma = date.toLocaleDateString("es-CO", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+          });
+
+          this.fecha_acualizacion.set(date_forma);
+        }
+      },
+      error: (e) => {
+        console.error(e);
       }
     });
   }

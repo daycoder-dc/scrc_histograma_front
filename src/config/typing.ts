@@ -22,7 +22,7 @@ export type HistoryData = {
   nic: string,
   orden: string,
   zona: string,
-  tipo_brigada: string | null,
+  tipo_brigada: string,
   tipo_os: string,
   tecnico: string | null,
   periodo: string,
@@ -40,4 +40,8 @@ export enum EstadoOrdenes {
   EFECTIVA = "Efectiva",
   FALLIDA_PAGA = "Fallida",
   FALLIDA = "Perdida"
+}
+
+export type DateUpdateData = {
+  fecha_registro: string
 }
