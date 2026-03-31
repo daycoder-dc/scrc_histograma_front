@@ -1,0 +1,14 @@
+.git/
+.angular/
+node_modules/
+nginx/
+
+.dockerignore
+.editorconfig
+.gitignore
+
+docker-compose.yaml
+Dockerfile
+LICENSE.md
+
+proxy.conf.json
