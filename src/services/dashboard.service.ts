@@ -699,14 +699,7 @@ export class DashboardService {
   public fetch_data() {
     this.block.enable();
 
-    const data = {
-      proyectos: this.form_filters.controls.proyectos.value,
-      periodos: this.form_filters.controls.periodos.value,
-      brigadas: this.form_filters.controls.brigadas.value,
-      tecnicos: this.form_filters.controls.tecnicos.value
-    }
-
-    this.http.post<HistoryData[]>("/api/v1/history", data).subscribe({
+    this.http.get<HistoryData[]>("/api/v1/history").subscribe({
       next: (res) => {
         this.dataset.set(res);
         this.block.disable();
