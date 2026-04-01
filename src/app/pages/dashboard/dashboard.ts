@@ -48,6 +48,7 @@ export class Dashboard {
           detail: "Archivo cargado satisfactoriamente"
         });
 
+        this.service.file_process.update(value => !value);
         this.service.fetch_data();
       }
     });
@@ -61,6 +62,8 @@ export class Dashboard {
           summary: "Error",
           detail: "Hubo un error en el procesamiento del archivo."
         });
+
+        this.service.file_process.update(value => !value);
       }
     });
   }

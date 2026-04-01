@@ -3,6 +3,7 @@ import { Component, effect, inject, model, viewChild } from '@angular/core';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { MessageService, ConfirmationService } from 'primeng/api';
+import { DashboardService } from '@/services/dashboard.service';
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { BlockHttpService } from '@/services/block_http';
 import { InputTextModule } from 'primeng/inputtext';
@@ -11,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
+import { PrimeNG } from "primeng/config"
 
 @Component({
   selector: "app-dashboard-upload-file",
@@ -38,17 +40,20 @@ export class DashboardUploadFile {
   private readonly alert = inject(MessageService);
   private readonly http = inject(HttpClient);
   private readonly block = inject(BlockHttpService);
+  private readonly config = inject(PrimeNG);
+  private readonly service = inject(DashboardService);
 
-  protected readonly file_upload = viewChild(FileUpload)
+  protected readonly file_upload = viewChild(FileUpload);
+
   protected readonly form = new FormGroup({
-    zona: new FormControl<string | null>(null, {validators: Validators.required}),
-    file: new FormControl<File | null>(null,{ validators: Validators.required})
+    zona: new FormControl<string | null>(null, { validators: Validators.required }),
+    file: new FormControl<File | null>(null, { validators: Validators.required })
   });
 
   protected readonly zona_items = [
-    {label: "Norte", value: "norte"},
-    {label: "Centro", value: "centro"},
-    {label: "Sur", value: "sur"}
+    { label: "Norte", value: "norte" },
+    { label: "Centro", value: "centro" },
+    { label: "Sur", value: "sur" }
   ];
 
   constructor() {
@@ -62,11 +67,11 @@ export class DashboardUploadFile {
     });
   }
 
-  protected on_upload(event:FileUploadHandlerEvent) {
+  protected on_upload(event: FileUploadHandlerEvent) {
     this.form.controls.file.setValue(event.files[0]);
   }
 
-  protected on_send_file(event:Event, fu:FileUpload) {
+  protected on_send_file(event: Event, fu: FileUpload) {
     Object.values(this.form.controls).forEach((control, _) => {
       if (control.invalid) control.markAsTouched();
     })
@@ -96,7 +101,7 @@ export class DashboardUploadFile {
       accept: () => {
         this.block.enable();
 
-        this.http.post<Record<string,string>>("/api/v1/history/upload", data).subscribe({
+        this.http.post<Record<string, string>>("/api/v1/history/upload", data).subscribe({
           next: (res) => {
             this.block.disable();
 
@@ -107,9 +112,11 @@ export class DashboardUploadFile {
             });
 
             this.visible.set(false);
+            this.service.file_process.update(value => !value);
+
             sessionStorage.setItem("archivo_id", res["id"]);
           },
-          error: (e:HttpErrorResponse) => {
+          error: (e: HttpErrorResponse) => {
             let detail = "No se pudo cargar el archivo.";
 
             this.block.disable();
@@ -131,8 +138,26 @@ export class DashboardUploadFile {
     });
   }
 
-  protected is_invalid(control_name:string) {
+  protected is_invalid(control_name: string) {
     const control = this.form.get(control_name);
     return control && control.touched && control.hasError("required");
+  }
+
+  protected formatSize(bytes: number) {
+    const k = 1024;
+    const dm = 3;
+    const sizes = this.config.translation.fileSizeTypes!;
+    if (bytes === 0) {
+      return `0 ${sizes[0]}`;
+    }
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const formattedSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
+
+    return `${formattedSize.toFixed(2)} ${sizes[i]}`;
+  }
+
+  protected onRemoveFile(event:any, removeFileCallback:any, index:number) {
+    removeFileCallback(event, index);
   }
 }

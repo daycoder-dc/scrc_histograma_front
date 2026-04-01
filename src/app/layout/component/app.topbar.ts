@@ -1,19 +1,24 @@
 import { DashboardUploadFile } from '@/app/pages/dashboard/upload_file/upload_file';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { DashboardService } from '@/services/dashboard.service';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Component, inject, signal } from '@angular/core';
 import { StyleClassModule } from 'primeng/styleclass';
-import { RouterModule } from '@angular/router';
 import { TooltipModule } from "primeng/tooltip";
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-topbar',
   imports: [
+    ProgressSpinnerModule,
     DashboardUploadFile,
     StyleClassModule,
     TooltipModule,
     RouterModule,
-    CommonModule
+    CommonModule,
+    TagModule,
   ],
   template: `
     <div class="layout-topbar">
@@ -23,6 +28,9 @@ import { CommonModule } from '@angular/common';
             </button>
             <a class="layout-topbar-logo" routerLink="/">
               <!-- logo -->
+               <div class="flex justify-center">
+                <a href="/"><img src="/favicon-150x150.png" alt="ises" width="30"></a>
+               </div>
                <div class="flex flex-col">
                   <span class="text-xl">{{ bar_title }}</span>
                   <span class="text-xs">Zona Norte, Centro, Sur</span>
@@ -31,6 +39,14 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="layout-topbar-actions">
+            @if (dashboard.file_process() == true) {
+              <p-tag severity="warn">
+                <div class="flex items-center gap-2 ml-2">
+                  <p-progress-spinner ariaLabel="loading" class="size-6!" />
+                  <span>Procesando archivo ...</span>
+                </div>
+              </p-tag>
+            }
             <div class="layout-config-menu">
                 <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()" pTooltip="Cambiar tema" tooltipPosition="left">
                     <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
@@ -65,7 +81,8 @@ import { CommonModule } from '@angular/common';
 export class AppTopbar {
   protected readonly bar_title = "SCR Dashboard";
   protected readonly layoutService = inject(LayoutService);
-  protected upload_file_visile = signal(false);
+  protected readonly dashboard = inject(DashboardService);
+  protected readonly upload_file_visile = signal(false);
 
   protected toggleDarkMode() {
     this.layoutService.layoutConfig.update((state) => ({

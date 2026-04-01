@@ -5,6 +5,7 @@ import { Component } from '@angular/core';
   selector: 'app-footer',
   template: `
     <div class="layout-footer">
+      <img src="/favicon.png" alt="ises" width="16">
       <span>{{bar_title}}</span>
       <span>&copy;</span>
       <Span>Todos los derechos reservados.</Span>

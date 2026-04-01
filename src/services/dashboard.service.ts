@@ -21,6 +21,7 @@ export class DashboardService {
 
   // Data general
   public readonly dataset = signal<HistoryData[]>([]);
+  public readonly file_process = signal(false);
 
   public readonly indicadores = computed(() => [
     {
