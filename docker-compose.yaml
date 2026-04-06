@@ -2,4 +2,4 @@ services:
   scr_histograma_front:
     build: .
     container_name: scr_histograma_front
-    restart: unless-stopped
+    restart: always
