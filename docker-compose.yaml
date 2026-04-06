@@ -3,15 +3,3 @@ services:
     build: .
     container_name: scr_histograma_front
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.scr_histograma_front.rule=Host(`${TRAEFIK_HOST}`)"
-      - "traefik.http.routers.scr_histograma_front.entrypoints=websecure"
-      - "traefik.http.routers.scr_histograma_front.tls.certresolver=letsencrypt"
-      - "traefik.http.services.scr_histograma_front.loadbalancer.server.port=80"
-    networks:
-      - scr_histograma_net
-
-networks:
-  scr_histograma_net:
-    external: true
