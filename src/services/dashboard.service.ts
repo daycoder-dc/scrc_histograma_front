@@ -124,15 +124,17 @@ export class DashboardService {
       tooltip: { mode: "index", intersect: false },
       datalabels: {
         align: "center",
-        font: { size: 10},
+        font: { size: 10 },
         formatter: (value, ctx) => {
           const datasets = ctx.chart.data.datasets;
           const dt1 = datasets[0].data[ctx.dataIndex] || 0;
           const dt2 = datasets[1].data[ctx.dataIndex] || 0;
           const total = this.total_ordenes();
-          const percentage = (value / total) * 100;
+          const percentage = Math.floor((value / total) * 100);
 
-          return (percentage >= 0.01 ? percentage.toFixed(2) : 0) + "%";
+          if (percentage < 1) return null;
+
+          return percentage + "%";
         }
       }
     },
