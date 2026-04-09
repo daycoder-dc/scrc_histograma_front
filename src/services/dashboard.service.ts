@@ -1,6 +1,8 @@
-import { DateUpdateData, EstadoOrdenes, FilterItem, HistoryData,
-  RendimientoBrigadaDts, TipoActividadesDts } from "@/config/typing";
-import { computed, inject, Injectable, signal } from "@angular/core";
+import {
+  DataIndicadores, DateUpdateData, EstadoOrdenes, FilterItem,
+  HistoryData, RendimientoBrigadaDts, TipoActividadesDts
+} from "@/config/typing";
+import { inject, Injectable, signal } from "@angular/core";
 import { ChartOptions, ChartData, Chart } from "chart.js";
 import { FormControl, FormGroup } from "@angular/forms";
 import chartDataLabels from "chartjs-plugin-datalabels";
@@ -8,7 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
 import { io } from "socket.io-client";
 
-@Injectable({providedIn:"root"})
+@Injectable({ providedIn: "root" })
 export class DashboardService {
   private readonly block = inject(BlockHttpService);
   private readonly http = inject(HttpClient);
@@ -22,51 +24,42 @@ export class DashboardService {
   // Data general
   public readonly dataset = signal<HistoryData[]>([]);
   public readonly file_process = signal(false);
+  private readonly total_ordenes = signal(0);
 
-  public readonly indicadores = computed(() => [
+  public readonly indicadores = signal<DataIndicadores[]>([
     {
-      value: this.total_ordenes(),
+      value: 0,
       description: "Total ordenes",
       color: "text-white",
       background: true,
-      modeda: false
+      porcentaje: 0,
+      monto: 0,
     },
     {
-      value: this.efectivas(),
+      value: 0,
       description: "Efectivas",
       color: "text-primary",
       background: false,
-      modeda: false
+      porcentaje: 0,
+      monto: 0,
     },
     {
-      value: this.fallidas_pago(),
+      value: 0,
       description: "Fallida C/Pago",
       color: "text-primary",
       background: false,
-      modeda: false
+      porcentaje: 0,
+      monto: 0,
     },
     {
-      value: this.sin_recaudacion(),
+      value: 0,
       description: "Sin recaudación",
       color: "text-red-500",
       background: false,
-      modeda: false
+      porcentaje: 0,
+      monto: 0,
     },
-    {
-      value: this.recaudacion(),
-      description: "Recaudación",
-      color: "text-green-500",
-      background: false,
-      modeda: true
-    }
   ]);
-
-  // Datos de los indicadores
-  public readonly total_ordenes = signal(0);
-  public readonly efectivas = signal(0);
-  public readonly fallidas_pago = signal(0);
-  public readonly sin_recaudacion = signal(0);
-  public readonly recaudacion = signal(0);
 
   // Datos para los filtros
   public readonly proyectos = signal<FilterItem[]>([]);
@@ -77,8 +70,8 @@ export class DashboardService {
   public readonly ed = signal<string[]>([]);
 
   public readonly actividad = signal<FilterItem[]>([
-    {label:"Suspensión", value: "1"},
-    {label:"Reconexión", value: "2"}
+    { label: "Suspensión", value: "1" },
+    { label: "Reconexión", value: "2" }
   ]);
 
   // Datos seleccionados en los filtros
@@ -94,7 +87,6 @@ export class DashboardService {
   public readonly fecha_acualizacion = signal("---");
   public readonly distrubuion_horaria_valor = signal<ChartData | null>(null);
   public readonly evolucion_diaria = signal<ChartData | null>(null);
-  public readonly top_actividades = signal<TipoActividadesDts[]>([]);
   public readonly rendimiento_brigada = signal<RendimientoBrigadaDts[]>([]);
   public readonly analisis_fallidas_accion = signal<ChartData | null>(null);
 
@@ -119,7 +111,7 @@ export class DashboardService {
         display: true,
         position: "right",
         grid: { drawOnChartArea: false },
-        title: { display:true, text: "Recaudación ($)" }
+        title: { display: true, text: "Recaudación ($)" }
       }
     }
   }
@@ -128,18 +120,30 @@ export class DashboardService {
     maintainAspectRatio: false,
     aspectRatio: 0.8,
     plugins: {
-      title: {display:true, text: "Evolución Diaria (Clic para filtrar)"},
+      title: { display: true, text: "Evolución Diaria (Clic para filtrar)" },
       tooltip: { mode: "index", intersect: false },
-      datalabels: { display: false }
+      datalabels: {
+        align: "center",
+        font: { size: 10},
+        formatter: (value, ctx) => {
+          const datasets = ctx.chart.data.datasets;
+          const dt1 = datasets[0].data[ctx.dataIndex] || 0;
+          const dt2 = datasets[1].data[ctx.dataIndex] || 0;
+          const total = this.total_ordenes();
+          const percentage = (value / total) * 100;
+
+          return (percentage >= 0.01 ? percentage.toFixed(2) : 0) + "%";
+        }
+      }
     },
     scales: {
       x: {
         stacked: true,
-        title: { display:true, text: "Día del Mes" }
+        title: { display: true, text: "Día del Mes" }
       },
       y: {
         stacked: true,
-        title: { display:true, text: "Cantidad" }
+        title: { display: true, text: "Cantidad" }
       }
     },
     onClick: (event, elements, chart) => {
@@ -159,7 +163,7 @@ export class DashboardService {
     maintainAspectRatio: false,
     aspectRatio: 0.8,
     plugins: {
-      title: { display:true, text: "Análisis de Fallidas por Acción (Click par filtrar)" },
+      title: { display: true, text: "Análisis de Fallidas por Acción (Click par filtrar)" },
       datalabels: {
         anchor: "end",
         align: "end",
@@ -170,12 +174,12 @@ export class DashboardService {
           const total = this.total_ordenes();
           const percentage = (value / total) * 100;
 
-          if (ctx.datasetIndex == 0)  {
+          if (ctx.datasetIndex == 0) {
             if (dt1 < dt2) return null;
             if (dt1 == dt2) return null;
           }
 
-          if (ctx.datasetIndex == 1)  {
+          if (ctx.datasetIndex == 1) {
             if (dt2 < dt1) return null;
           }
 
@@ -225,7 +229,7 @@ export class DashboardService {
     }
   }
 
-  constructor () {
+  constructor() {
     Chart.register(chartDataLabels);
 
     this.form_filters.controls.proyectos.valueChanges.subscribe(() => {
@@ -252,7 +256,7 @@ export class DashboardService {
               it => it.periodo
             )
           )
-        ).map<FilterItem>(it => ({label:it, value:it}))
+        ).map<FilterItem>(it => ({ label: it, value: it }))
 
         this.periodos.set(periodos);
         this.form_filters.controls.actividad.setValue(actividad.map(it => it.value));
@@ -284,7 +288,7 @@ export class DashboardService {
             ).map(it => it.tipo_brigada)
           )
         )
-        .map<FilterItem>(it => ({label:it, value:it}));
+          .map<FilterItem>(it => ({ label: it, value: it }));
 
         this.brigadas.set(brigadas);
       }
@@ -315,8 +319,8 @@ export class DashboardService {
             ).map(it => it.tecnico)
           )
         )
-        .filter(it => it != null)
-        .map<FilterItem>(it => ({label:it, value:it}))
+          .filter(it => it != null)
+          .map<FilterItem>(it => ({ label: it, value: it }))
 
         this.tecnicos.set(tecnicos);
       }
@@ -346,62 +350,112 @@ export class DashboardService {
 
     const result = dataset.filter(
       it => proyectos.includes(it.zona)
-      && (
-        actividad.length == 1 ?
-        actividad.includes("2")?
-        it.tipo_os == "TO502" :
-        it.tipo_os != "TO502" :
-        !(actividad.length == 0)
-      )
-      && (
+        && (
+          actividad.length == 1 ?
+            actividad.includes("2") ?
+              it.tipo_os == "TO502" :
+              it.tipo_os != "TO502" :
+            !(actividad.length == 0)
+        )
+        && (
           periodos.length > 0 ?
-          periodos.includes(it.periodo) :
-          true
+            periodos.includes(it.periodo) :
+            true
         )
-      && (
+        && (
           brigadas.length > 0 ?
-          brigadas.includes(it.tipo_brigada) :
-          true
+            brigadas.includes(it.tipo_brigada) :
+            true
         )
-      && (
-        tecnicos.length > 0 ?
-        (it.tecnico && tecnicos.includes(it.tecnico)) :
-        true
-      )
-      && (
-        afa.length > 0 ?
-        afa.includes(it.accion) :
-        true
-      )
-      && (
-        ed.length > 0 ?
-        ed.includes(it.periodo_dia) :
-        true
-      )
+        && (
+          tecnicos.length > 0 ?
+            (it.tecnico && tecnicos.includes(it.tecnico)) :
+            true
+        )
+        && (
+          afa.length > 0 ?
+            afa.includes(it.accion) :
+            true
+        )
+        && (
+          ed.length > 0 ?
+            ed.includes(it.periodo_dia) :
+            true
+        )
     );
 
     // Cargar indicadores
     {
-      const efectivas = result.filter(it => it.estado == EstadoOrdenes.EFECTIVA).length;
-      const fallidas_paga = result.filter(it => it.estado == EstadoOrdenes.FALLIDA_PAGA).length;
-      const sin_recaudacion = result.filter(it => it.estado == EstadoOrdenes.FALLIDA).length;
-      const total_ordenes = efectivas + fallidas_paga + sin_recaudacion;
+      const ordenes = result.reduce<DataIndicadores>((acc, cur) => {
+        acc.value += 1;
+        acc.porcentaje = 100;
+        acc.monto += cur.valor_unitario;
+        return acc;
+      }, {
+        description: "Total ordenes",
+        color: "text-white",
+        background: true,
+        value: 0,
+        porcentaje: 0,
+        monto: 0
+      });
 
-      const recaudacion = result.filter(
-        it => it.estado == EstadoOrdenes.EFECTIVA || it.estado == EstadoOrdenes.FALLIDA_PAGA
-      ).reduce((acc, cur) => acc + cur.valor_unitario , 0);
+      const efectivas = result.filter(it => it.estado == EstadoOrdenes.EFECTIVA)
+        .reduce<DataIndicadores>((acc, cur) => {
+          acc.value += 1;
+          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
+          acc.monto += cur.valor_unitario;
+          return acc;
+        }, {
+          description: "Efectivas",
+          color: "text-primary",
+          background: false,
+          value: 0,
+          porcentaje: 0,
+          monto: 0,
+        }
+      );
 
-      this.total_ordenes.set(total_ordenes);
-      this.efectivas.set(efectivas);
-      this.fallidas_pago.set(fallidas_paga);
-      this.sin_recaudacion.set(sin_recaudacion);
-      this.recaudacion.set(recaudacion);
+      const fallidas_paga = result.filter(it => it.estado == EstadoOrdenes.FALLIDA_PAGA)
+        .reduce<DataIndicadores>((acc, cur) => {
+          acc.value += 1;
+          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
+          acc.monto += cur.valor_unitario;
+          return acc;
+        }, {
+          description: "Fallida C/Pago",
+          color: "text-primary",
+          background: false,
+          value: 0,
+          porcentaje: 0,
+          monto: 0,
+        }
+      );
+
+      const sin_recaudacion = result.filter(it => it.estado == EstadoOrdenes.FALLIDA)
+        .reduce<DataIndicadores>((acc, cur) => {
+          acc.value += 1;
+          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
+          acc.monto += cur.valor_unitario;
+          return acc;
+        }, {
+          value: 0,
+          description: "Sin recaudación",
+          color: "text-red-500",
+          background: false,
+          porcentaje: 0,
+          monto: 0,
+        }
+      );
+
+      this.indicadores.set([ordenes, efectivas, fallidas_paga, sin_recaudacion]);
+      this.total_ordenes.set(ordenes.value);
     }
 
     // Cargar grafico de distribución horaria y valor
     {
       type DataGraphic = {
-        [k:string]: {
+        [k: string]: {
           efectivas: number,
           fallidas_pagas: number,
           fallidas: number,
@@ -436,7 +490,7 @@ export class DashboardService {
 
           return acc;
         }, {})
-      ).sort((a,b) => a[0].localeCompare(b[0]));
+      ).sort((a, b) => a[0].localeCompare(b[0]));
 
       const dataset: ChartData = {
         labels: data.map(it => it[0]),
@@ -472,48 +526,10 @@ export class DashboardService {
       this.distrubuion_horaria_valor.set(dataset);
     }
 
-    // Cargar tabla top actividades
-    {
-      type DataGraphic = {
-        [k:string]: {
-          os: number,
-          ingreso: number,
-        }
-      }
-
-      const data = Object.entries(
-        result.reduce<DataGraphic>((acc, cur) => {
-          if (cur.tipo_actividad) {
-            if (!acc[cur.tipo_actividad]) {
-              acc[cur.tipo_actividad] = {
-                os: 0,
-                ingreso: 0
-              }
-            }
-
-            if (cur.estado == EstadoOrdenes.EFECTIVA || cur.estado == EstadoOrdenes.FALLIDA_PAGA) {
-              acc[cur.tipo_actividad].os += 1;
-              acc[cur.tipo_actividad].ingreso += cur.valor_unitario;
-            }
-          }
-
-          return acc;
-        }, {})
-      ).map<TipoActividadesDts>(it => ({
-        actividad:it[0],
-        os: it[1].os,
-        ingreso: it[1].ingreso,
-      }))
-      .filter(it => it.ingreso > 0)
-      .sort((a,b) => b.ingreso - a.ingreso)
-
-      this.top_actividades.set(data);
-    }
-
     // Cargar grafico Evolución Diaria
     {
       type DataGraphic = {
-        [k:string]: {
+        [k: string]: {
           efectivas: number,
           fallidas_pagas: number,
           fallidas: number
@@ -544,7 +560,7 @@ export class DashboardService {
 
           return acc;
         }, {})
-      ).sort((a,b) => a[0].localeCompare(b[0]));
+      ).sort((a, b) => a[0].localeCompare(b[0]));
 
       const dataset: ChartData = {
         labels: data.map(it => it[0]),
@@ -573,7 +589,7 @@ export class DashboardService {
     // Cargar Rendimiento de brigada
     {
       type DataGraphic = {
-        [k:string]: {
+        [k: string]: {
           efectivas: number,
           fallidas_pagas: number,
           fallidas: number,
@@ -609,16 +625,16 @@ export class DashboardService {
           return acc;
         }, {})
       ).map<RendimientoBrigadaDts>(it => ({
-          brigada: it[0],
-          efectivas: it[1].efectivas,
-          fallidas_pago: it[1].fallidas_pagas,
-          fallidas: it[1].fallidas,
-          total: it[1].efectivas + it[1].fallidas_pagas + it[1].fallidas,
-          caja: it[1].caja
-        })
+        brigada: it[0],
+        efectivas: it[1].efectivas,
+        fallidas_pago: it[1].fallidas_pagas,
+        fallidas: it[1].fallidas,
+        total: it[1].efectivas + it[1].fallidas_pagas + it[1].fallidas,
+        caja: it[1].caja
+      })
       )
-      .filter(it => it.caja > 0)
-      .sort((a,b) => b.caja - a.caja);
+        .filter(it => it.caja > 0)
+        .sort((a, b) => b.caja - a.caja);
 
       this.rendimiento_brigada.set(data);
     }
@@ -626,7 +642,7 @@ export class DashboardService {
     // Cargar grafico Analisis de fallidas por acción
     {
       type DataGraphicV1 = {
-        [k:string]:  {
+        [k: string]: {
           fallidas: number,
           fallidas_paga: number,
           total: number
@@ -634,7 +650,7 @@ export class DashboardService {
       }
 
       type DataGraphicV2 = {
-        label:string,
+        label: string,
         fallidas: number,
         fallidas_paga: number,
         total: number
@@ -676,8 +692,8 @@ export class DashboardService {
 
         return acc;
       }, [])
-      .filter(it => it.total > 0)
-      .sort((a,b) => b.total - a.total);
+        .filter(it => it.total > 0)
+        .sort((a, b) => b.total - a.total);
 
       const dataset: ChartData = {
         labels: data.map(it => it.label),
@@ -707,7 +723,7 @@ export class DashboardService {
 
         // cargar datos del campo proyectos
         const zonas = Array.from(new Set(res.map(it => it.zona)));
-        this.proyectos.set(zonas.map<FilterItem>(it => ({label: it, value: it })));
+        this.proyectos.set(zonas.map<FilterItem>(it => ({ label: it, value: it })));
         this.form_filters.controls.proyectos.setValue(zonas);
       },
       error: (err) => {

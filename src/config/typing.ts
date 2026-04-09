@@ -45,3 +45,12 @@ export enum EstadoOrdenes {
 export type DateUpdateData = {
   fecha_registro: string
 }
+
+export type DataIndicadores = {
+  value: number,
+  description: string,
+  color: string,
+  background: boolean,
+  porcentaje: number,
+  monto: number,
+}

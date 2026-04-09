@@ -28,27 +28,22 @@
   </div>
 
   <!-- indicadores -->
-  <om-marquee animationDuration="40s">
+  <div class="flex justify-between overflow-x-auto">
     @for (card of indicadores; track $index) {
-    <ng-template [omMarqueeItem]="card">
-      <p-card [pt]="{
-        root: { class: 'overflow-hidden'},
-        body: { class: card.background ? 'bg-primary' : '' }
-      }">
-        <div class="flex flex-col gap-2 w-56 my-3">
-          <span class="text-3xl font-extrabold" [ngClass]="card.color">
-            @if (card.modeda) {
-            <span>&dollar;</span>
-            }
-            <span>{{card.value | number }}</span>
-          </span>
-          <span class="text-sm font-semibold uppercase"
-            [ngClass]="{'text-gray-200':card.background}">{{card.description}}</span>
+        <div class="bg-white p-6 mx-3 rounded-xl flex flex-col gap-3 min-w-72 2xl:min-w-80 my-3" [ngClass]="{'bg-primary! text-white': card.background}">
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between">
+              <span class="text-4xl font-extrabold" [ngClass]="card.color">{{card.value | number }}</span>
+              <span class="text-lg">{{card.porcentaje}}%</span>
+            </div>
+            <span class="text-md font-semibold uppercase" [ngClass]="{'text-gray-200':card.background}">{{card.description}}</span>
+          </div>
+          <div class="flex justify-end">
+            <span class="font-semibold font-mono text-lg">&dollar;{{ card.monto | number }}</span>
+          </div>
         </div>
-      </p-card>
-    </ng-template>
     }
-  </om-marquee>
+  </div>
 
   <div class="flex flex-col gap-y-8">
     <div class="flex justify-between gap-y-8 flex-wrap">
@@ -63,50 +58,6 @@
           [options]="options_dh"
           class="h-100" />
       </p-card>
-
-      <!-- Tipo de actividades -->
-      <p-card class="w-full xl:w-[39%]"
-        header="Top Actividades"
-        pAnimateOnScroll
-        enterClass="animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000"
-        leaveClass="animate-leave fade-out-0">
-        <p-table
-          size="small"
-          [scrollable]="true"
-          scrollHeight="25rem"
-          [value]="data_ta">
-          <ng-template #header>
-            <tr>
-              <th>ACTIVIDAD</th>
-              <th>OS</th>
-              <th>INGRESO</th>
-            </tr>
-          </ng-template>
-          <ng-template #body let-item>
-            <tr>
-              <td>{{ item.actividad }}</td>
-              <td>{{ item.os }}</td>
-              <td>
-                <p-tag severity="success">${{ item.ingreso | number }}</p-tag>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </p-card>
-    </div>
-
-    <div class="flex justify-between gap-y-8 flex-wrap">
-      <!-- Evolución Diaria -->
-       <p-card class="w-full xl:w-[59%]"
-          pAnimateOnScroll
-          enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-          leaveClass="animate-leave fade-out-0">
-        <p-chart
-          type="bar"
-          [data]="data_ed"
-          [options]="options_ed"
-          class="h-100"/>
-       </p-card>
       <!-- Rendimiento de brigada -->
       <p-card class="w-full xl:w-[39%]"
         header="Rendimiento de Brigada"
@@ -152,6 +103,20 @@
           </ng-template>
         </p-table>
       </p-card>
+    </div>
+
+    <div class="flex justify-between gap-y-8 flex-wrap">
+      <!-- Evolución Diaria -->
+       <p-card class="w-full"
+          pAnimateOnScroll
+          enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+          leaveClass="animate-leave fade-out-0">
+        <p-chart
+          type="bar"
+          [data]="data_ed"
+          [options]="options_ed"
+          class="h-100"/>
+       </p-card>
     </div>
 
     <div class="flex justify-between gap-y-8 flow-wrap">

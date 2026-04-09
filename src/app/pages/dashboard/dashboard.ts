@@ -1,4 +1,3 @@
-import { NgxMarqueeComponent, OmMarqueeItemDirective } from '@omnedia/ngx-marquee';
 import { AnimateOnScrollModule } from 'primeng/animateonscroll';
 import { DashboardService } from '@/services/dashboard.service';
 import { DecimalPipe, NgClass } from '@angular/common';
@@ -16,9 +15,7 @@ import { TagModule } from "primeng/tag";
   selector: 'app-dashboard',
   templateUrl: "./dashboard.html",
   imports: [
-    OmMarqueeItemDirective,
     AnimateOnScrollModule,
-    NgxMarqueeComponent,
     MessageModule,
     ChartModule,
     ChipModule,
@@ -78,10 +75,6 @@ export class Dashboard {
 
   protected get data_dh() {
     return this.service.distrubuion_horaria_valor()
-  }
-
-  protected get data_ta() {
-    return this.service.top_actividades();
   }
 
   protected get data_ed() {
