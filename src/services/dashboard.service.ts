@@ -1,6 +1,6 @@
 import {
   DataIndicadores, DateUpdateData, EstadoOrdenes, FilterItem,
-  HistoryData, RendimientoBrigadaDts, TipoActividadesDts
+  HistoryData, RendimientoBrigadaDts
 } from "@/config/typing";
 import { inject, Injectable, signal } from "@angular/core";
 import { ChartOptions, ChartData, Chart } from "chart.js";
@@ -23,6 +23,7 @@ export class DashboardService {
 
   // Data general
   public readonly dataset = signal<HistoryData[]>([]);
+  public readonly table = signal<HistoryData[]>([]);
   public readonly file_process = signal(false);
   private readonly total_ordenes = signal(0);
 
@@ -416,7 +417,7 @@ export class DashboardService {
           porcentaje: 0,
           monto: 0,
         }
-      );
+        );
 
       const fallidas_paga = result.filter(it => it.estado == EstadoOrdenes.FALLIDA_PAGA)
         .reduce<DataIndicadores>((acc, cur) => {
@@ -432,7 +433,7 @@ export class DashboardService {
           porcentaje: 0,
           monto: 0,
         }
-      );
+        );
 
       const sin_recaudacion = result.filter(it => it.estado == EstadoOrdenes.FALLIDA)
         .reduce<DataIndicadores>((acc, cur) => {
@@ -448,7 +449,7 @@ export class DashboardService {
           porcentaje: 0,
           monto: 0,
         }
-      );
+        );
 
       this.indicadores.set([ordenes, efectivas, fallidas_paga, sin_recaudacion]);
       this.total_ordenes.set(ordenes.value);
@@ -713,6 +714,8 @@ export class DashboardService {
 
       this.analisis_fallidas_accion.set(dataset);
     }
+
+    this.table.set(result);
   }
 
   public fetch_data() {

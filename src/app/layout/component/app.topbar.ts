@@ -68,7 +68,7 @@ import { TagModule } from 'primeng/tag';
                     <!-- Botón de perfil  -->
                     <button type="button" class="layout-topbar-action" pTooltip="Mi perfil" tooltipPosition="left">
                         <i class="pi pi-user"></i>
-                        <span>Mi perfil</span>
+                        <span>Mi Perfil</span>
                     </button>
                 </div>
             </div>

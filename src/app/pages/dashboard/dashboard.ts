@@ -1,7 +1,8 @@
+import { DashboardDatasetView } from './dataset-view/dataset-view';
 import { AnimateOnScrollModule } from 'primeng/animateonscroll';
 import { DashboardService } from '@/services/dashboard.service';
+import { Component, inject, signal } from '@angular/core';
 import { DecimalPipe, NgClass } from '@angular/common';
-import { Component, inject } from '@angular/core';
 import { MessageModule } from "primeng/message";
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -16,6 +17,7 @@ import { TagModule } from "primeng/tag";
   templateUrl: "./dashboard.html",
   imports: [
     AnimateOnScrollModule,
+    DashboardDatasetView,
     MessageModule,
     ChartModule,
     ChipModule,
@@ -34,8 +36,11 @@ export class Dashboard {
   private readonly service = inject(DashboardService);
   private readonly alert = inject(MessageService);
 
-  constructor () {
-    this.service.socket.on("FILE_LOAD_SUCCESS", (id:string) => {
+  protected readonly open_datasetview = signal(false);
+  protected readonly desc_datasetview = signal("");
+
+  constructor() {
+    this.service.socket.on("FILE_LOAD_SUCCESS", (id: string) => {
       const archivo_id = sessionStorage.getItem("archivo_id");
 
       if (archivo_id == id) {
@@ -50,8 +55,8 @@ export class Dashboard {
       }
     });
 
-    this.service.socket.on("FILE_LOAD_ERROR", (id:string) => {
-      const archivo_id  = sessionStorage.getItem("archivo_id");
+    this.service.socket.on("FILE_LOAD_ERROR", (id: string) => {
+      const archivo_id = sessionStorage.getItem("archivo_id");
 
       if (archivo_id == id) {
         this.alert.add({
@@ -109,7 +114,7 @@ export class Dashboard {
     return this.service.afa();
   }
 
-  protected on_afa_remove(index:number) {
+  protected on_afa_remove(index: number) {
     const data = this.service.afa();
     data.splice(index, 1);
 
@@ -121,11 +126,16 @@ export class Dashboard {
     return this.service.ed();
   }
 
-  protected on_ed_remove(index:number) {
+  protected on_ed_remove(index: number) {
     const data = this.service.ed();
     data.splice(index, 1);
 
     this.service.ed.set(data);
     this.service.load_dataset();
+  }
+
+  protected on_datasetview(description: string) {
+    this.desc_datasetview.set(description);
+    this.open_datasetview.update(value => !value);
   }
 }

@@ -13,65 +13,56 @@
     <!-- filtro graficos -->
     <div class="flex items-center gap-2 flex-wrap">
       @for (item of filters_afa; track $index) {
-        <p-chip [removable]="true"
-          (onRemove)="on_afa_remove($index)">
-          <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Acción:&nbsp;{{ item }}</span>
-        </p-chip>
+      <p-chip [removable]="true" (onRemove)="on_afa_remove($index)">
+        <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Acción:&nbsp;{{ item }}</span>
+      </p-chip>
       }
       @for (item of filters_ed; track $index) {
-        <p-chip [removable]="true"
-          (onRemove)="on_ed_remove($index)">
-          <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Día:&nbsp;{{ item }}</span>
-        </p-chip>
+      <p-chip [removable]="true" (onRemove)="on_ed_remove($index)">
+        <span class="bg-surface-200 py-1 px-2 rounded-lg">Filtrando Día:&nbsp;{{ item }}</span>
+      </p-chip>
       }
     </div>
   </div>
 
   <!-- indicadores -->
   <div class="flex overflow-x-auto" pAnimateOnScroll
-    enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-    leaveClass="animate-leave fade-out-0">
+    enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000" leaveClass="animate-leave fade-out-0">
     @for (card of indicadores; track $index) {
-        <div class="bg-surface-0 dark:bg-surface-800 p-6 mx-3 rounded-xl flex flex-col gap-3 min-w-72 2xl:min-w-80 flex-1 my-3"
-        [ngClass]="{'bg-primary! dark:bg-primary-600! text-white': card.background}">
-          <div class="flex flex-col gap-2">
-            <div class="flex justify-between">
-              <span class="text-4xl font-extrabold" [ngClass]="card.color">{{card.value | number }}</span>
-              <span class="text-lg">{{card.porcentaje}}%</span>
-            </div>
-            <span class="text-md font-semibold uppercase" [ngClass]="{'text-gray-200':card.background}">{{card.description}}</span>
-          </div>
-          <div class="flex justify-end">
-            <span class="font-semibold font-mono text-lg">&dollar;{{ card.monto | number }}</span>
-          </div>
+    <div
+      class="p-6 mx-3 rounded-xl flex flex-col gap-3 min-w-72 2xl:min-w-80 flex-1 my-3 cursor-pointer hover:outline-2 outline-surface-500"
+      [ngClass]="{
+        'bg-primary dark:bg-primary-600 text-white': card.background,
+        'bg-surface-0 dark:bg-surface-800': !card.background
+      }" (click)="on_datasetview(card.description)">
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between">
+          <span class="text-4xl font-extrabold" [ngClass]="card.color">{{card.value | number }}</span>
+          <span class="text-lg">{{card.porcentaje}}%</span>
         </div>
+        <span class="text-md font-semibold uppercase"
+          [ngClass]="{'text-gray-200':card.background}">{{card.description}}</span>
+      </div>
+      <div class="flex justify-end">
+        <span class="font-semibold font-mono text-lg">&dollar;{{ card.monto | number }}</span>
+      </div>
+    </div>
     }
   </div>
 
   <div class="flex flex-col gap-y-8">
     <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Grafico - Distribución horaria y valor -->
-      <p-card class="w-full xl:w-[59%]"
-        pAnimateOnScroll
+      <p-card class="w-full xl:w-[59%]" pAnimateOnScroll
         enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
         leaveClass="animate-leave fade-out-0">
-        <p-chart
-          type="line"
-          [data]="data_dh"
-          [options]="options_dh"
-          class="h-100" />
+        <p-chart type="line" [data]="data_dh" [options]="options_dh" class="h-100" />
       </p-card>
       <!-- Rendimiento de brigada -->
-      <p-card class="w-full xl:w-[39%]"
-        header="Rendimiento de Brigada"
-        pAnimateOnScroll
+      <p-card class="w-full xl:w-[39%]" header="Rendimiento de Brigada" pAnimateOnScroll
         enterClass="animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000"
         leaveClass="animate-leave fade-out-0">
-        <p-table
-          size="small"
-          [scrollable]="true"
-          scrollHeight="25rem"
-          [value]="data_rb">
+        <p-table size="small" [scrollable]="true" scrollHeight="25rem" [value]="data_rb">
           <ng-template #header>
             <tr>
               <th>BRIGADA</th>
@@ -110,32 +101,23 @@
 
     <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Evolución Diaria -->
-       <p-card class="w-full"
-          pAnimateOnScroll
-          enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-          leaveClass="animate-leave fade-out-0">
-        <p-chart
-          type="bar"
-          [data]="data_ed"
-          [options]="options_ed"
-          class="h-100"/>
-       </p-card>
+      <p-card class="w-full" pAnimateOnScroll
+        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+        leaveClass="animate-leave fade-out-0">
+        <p-chart type="bar" [data]="data_ed" [options]="options_ed" class="h-100" />
+      </p-card>
     </div>
 
     <div class="flex justify-between gap-y-8 flow-wrap">
       <!-- Análisis de Fallidas por Acción -->
-      <p-card class="w-full"
-        pAnimateOnScroll
+      <p-card class="w-full" pAnimateOnScroll
         enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
         leaveClass="animate-leave fade-out-0">
-        <p-chart
-          type="bar"
-          [data]="data_afa"
-          [options]="options_afa"
-          class="h-120" />
+        <p-chart type="bar" [data]="data_afa" [options]="options_afa" class="h-120" />
       </p-card>
     </div>
   </div>
 </div>
 
-<p-toast/>
+<p-toast />
+<app-dashbaord-datasetview [(visible)]="open_datasetview" [(description)]="desc_datasetview" />
