@@ -86,7 +86,7 @@ export class DashboardService {
   });
 
   // Datos dashboard
-  public readonly fecha_acualizacion = signal("---");
+  public readonly fecha_acualizacion = signal("");
   public readonly distrubuion_horaria_valor = signal<ChartData | null>(null);
   public readonly evolucion_diaria = signal<ChartData | null>(null);
   public readonly rendimiento_brigada = signal<RendimientoBrigadaDts[]>([]);
