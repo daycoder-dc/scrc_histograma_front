@@ -9,6 +9,7 @@ import chartDataLabels from "chartjs-plugin-datalabels";
 import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
 import { io } from "socket.io-client";
+import { unpack } from "msgpackr";
 
 @Injectable({ providedIn: "root" })
 export class DashboardService {
@@ -125,12 +126,19 @@ export class DashboardService {
       tooltip: { mode: "index", intersect: false },
       datalabels: {
         align: "center",
+        clip: false,
         font: { size: 10 },
         formatter: (value, ctx) => {
+          if (value === 0) return null;
+
           const datasets = ctx.chart.data.datasets;
-          const dt1 = datasets[0].data[ctx.dataIndex] || 0;
-          const dt2 = datasets[1].data[ctx.dataIndex] || 0;
-          const total = this.total_ordenes();
+          const dt1 = Number(datasets[0].data[ctx.dataIndex] || 0);
+          const dt2 = Number(datasets[1].data[ctx.dataIndex] || 0);
+          const dt3 = Number(datasets[2].data[ctx.dataIndex] || 0);
+          const total = dt1 + dt2 + dt3;
+
+          if (total === 0) return null;
+
           const percentage = Math.floor((value / total) * 100);
 
           if (percentage < 1) return null;
@@ -168,25 +176,21 @@ export class DashboardService {
     plugins: {
       title: { display: true, text: "Análisis de Fallidas por Acción (Click par filtrar)" },
       datalabels: {
-        anchor: "end",
-        align: "end",
+        align: "center",
+        clip: false,
+        font: { size: 10 },
         formatter: (value, ctx) => {
-          const datasets = ctx.chart.data.datasets;
-          const dt1 = datasets[0].data[ctx.dataIndex] || 0;
-          const dt2 = datasets[1].data[ctx.dataIndex] || 0;
+          if (value === 0) return null;
+
           const total = this.total_ordenes();
-          const percentage = (value / total) * 100;
 
-          if (ctx.datasetIndex == 0) {
-            if (dt1 < dt2) return null;
-            if (dt1 == dt2) return null;
-          }
+          if (total === 0) return null;
 
-          if (ctx.datasetIndex == 1) {
-            if (dt2 < dt1) return null;
-          }
+          const percentage = Math.floor((value / total) * 100);
 
-          return (percentage >= 0.01 ? percentage.toFixed(2) : 0) + "%";
+          if (percentage === 0) return null;
+
+          return percentage + "%";
         }
       },
       tooltip: {
@@ -721,15 +725,15 @@ export class DashboardService {
   public fetch_data() {
     this.block.enable();
 
-    this.http.get<HistoryData[]>("/api/v1/history").subscribe({
+    this.http.get("/api/v1/history", { responseType: "arraybuffer" }).subscribe({
       next: (res) => {
-        this.dataset.set(res);
-        this.block.disable();
+        const data = unpack(new Uint8Array(res)) as HistoryData[];
+        const zonas = Array.from(new Set(data.map(it => it.zona)));
 
-        // cargar datos del campo proyectos
-        const zonas = Array.from(new Set(res.map(it => it.zona)));
+        this.dataset.set(data);
         this.proyectos.set(zonas.map<FilterItem>(it => ({ label: it, value: it })));
         this.form_filters.controls.proyectos.setValue(zonas);
+        this.block.disable();
       },
       error: (err) => {
         console.error(err);
@@ -742,14 +746,7 @@ export class DashboardService {
         const result = res.at(0)?.fecha_registro;
 
         if (result) {
-          const date = new Date(result);
-          const date_forma = date.toLocaleDateString("es-CO", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-          });
-
-          this.fecha_acualizacion.set(date_forma);
+          this.fecha_acualizacion.set(result);
         }
       },
       error: (e) => {

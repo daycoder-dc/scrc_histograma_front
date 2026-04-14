@@ -1,8 +1,8 @@
 import { DashboardDatasetView } from './dataset-view/dataset-view';
+import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { AnimateOnScrollModule } from 'primeng/animateonscroll';
 import { DashboardService } from '@/services/dashboard.service';
 import { Component, inject, signal } from '@angular/core';
-import { DecimalPipe, NgClass } from '@angular/common';
 import { MessageModule } from "primeng/message";
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -26,6 +26,7 @@ import { TagModule } from "primeng/tag";
     ToastModule,
     CardModule,
     TagModule,
+    DatePipe,
     NgClass,
   ],
   providers: [

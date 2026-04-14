@@ -6,7 +6,7 @@
         <h3 class="font-bold">Panel de Control SCR</h3>
       </div>
       <div class="flex flex-col items-end">
-        <span class="font-bold">{{ data_fa }}</span>
+        <span class="font-bold">{{ data_fa | date:"yyyy/MM/dd 'a las' h:mm a":"es-CO" }}</span>
         <span class="text-xs">Datos actualzados en tiempo real</span>
       </div>
     </div>
@@ -37,14 +37,14 @@
       }" (click)="on_datasetview(card.description)">
       <div class="flex flex-col gap-2">
         <div class="flex justify-between">
-          <span class="text-4xl font-extrabold" [ngClass]="card.color">{{card.value | number }}</span>
+          <span class="text-4xl font-extrabold" [ngClass]="card.color">{{card.value | number:'1.0':'es-CO' }}</span>
           <span class="text-lg">{{card.porcentaje}}%</span>
         </div>
         <span class="text-md font-semibold uppercase"
           [ngClass]="{'text-gray-200':card.background}">{{card.description}}</span>
       </div>
       <div class="flex justify-end">
-        <span class="font-semibold font-mono text-lg">&dollar;{{ card.monto | number }}</span>
+        <span class="font-semibold font-mono text-lg">&dollar;{{ card.monto | number:'1.0-0':'es-CO' }}</span>
       </div>
     </div>
     }
@@ -91,7 +91,7 @@
                 <span class="font-semibold">{{ item.total }}</span>
               </td>
               <td>
-                <p-tag severity="success">${{ item.caja | number }}</p-tag>
+                <p-tag severity="success">${{ item.caja | number:'1.0-0':'es-CO' }}</p-tag>
               </td>
             </tr>
           </ng-template>

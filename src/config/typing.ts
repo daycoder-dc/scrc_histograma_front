@@ -33,8 +33,7 @@ export type HistoryData = {
   valor_unitario: number,
   tipo_actividad: string,
   periodo_dia: string,
-  accion: string,
-  fecha_registro: string
+  accion: string
 }
 
 export enum EstadoOrdenes {
