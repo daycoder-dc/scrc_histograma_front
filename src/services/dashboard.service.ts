@@ -741,9 +741,9 @@ export class DashboardService {
       }
     });
 
-    this.http.get<DateUpdateData[]>("/api/v1/history/get%20update%20date").subscribe({
+    this.http.get<DateUpdateData>("/api/v1/history/get%20update%20date").subscribe({
       next: (res) => {
-        const result = res.at(0)?.fecha_registro;
+        const result = res.fecha_registro;
 
         if (result) {
           this.fecha_acualizacion.set(result);
