@@ -10,6 +10,7 @@ import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
 import { io } from "socket.io-client";
 import { unpack } from "msgpackr";
+import * as lf from "leaflet";
 
 @Injectable({ providedIn: "root" })
 export class DashboardService {
@@ -234,6 +235,24 @@ export class DashboardService {
         this.load_dataset();
       }
     }
+  }
+
+  // Configuracion del mapa
+  private readonly map_canvas = lf.canvas({ padding: 0.5 });
+  public readonly map_layers = new lf.LayerGroup();
+  public map?: lf.Map;
+  public readonly leaflet_options: lf.MapOptions = {
+    layers: [
+      lf.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 21,
+        minZoom: 4
+      })
+    ],
+    zoom: 12,
+    center: lf.latLng(10.963, -74.796),
+    renderer: this.map_canvas
   }
 
   constructor() {
@@ -717,6 +736,31 @@ export class DashboardService {
       };
 
       this.analisis_fallidas_accion.set(dataset);
+    }
+
+    // Cargar marcadores map
+    {
+      this.map_layers.clearLayers();
+
+      let count = 0;
+      for (const item of result) {
+        if (item.latitud && item.longitud) {
+          const marker = lf.circleMarker([Number(item.latitud), Number(item.longitud)], {
+            renderer: this.map_canvas,
+            radius: 5,
+            fillColor: "#ff4757",
+            stroke: false,
+            weight: 0.5,
+            opacity: 1,
+            fillOpacity: 0.8
+          });
+
+          this.map_layers.addLayer(marker);
+          count++;
+        }
+      }
+
+      console.log("Markers:", count);
     }
 
     this.table.set(result);

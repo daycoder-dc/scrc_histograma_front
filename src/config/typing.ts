@@ -33,7 +33,9 @@ export type HistoryData = {
   valor_unitario: number,
   tipo_actividad: string,
   periodo_dia: string,
-  accion: string
+  accion: string,
+  longitud: string | null,
+  latitud: string | null
 }
 
 export enum EstadoOrdenes {

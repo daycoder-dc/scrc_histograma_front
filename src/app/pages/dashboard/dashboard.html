@@ -99,23 +99,27 @@
       </p-card>
     </div>
 
-    <div class="flex justify-between gap-y-8 flex-wrap">
-      <!-- Evolución Diaria -->
-      <p-card class="w-full" pAnimateOnScroll
-        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-        leaveClass="animate-leave fade-out-0">
-        <p-chart type="bar" [data]="data_ed" [options]="options_ed" class="h-100" />
-      </p-card>
-    </div>
+    <!-- Evolución Diaria -->
+    <p-card class="flex w-full" pAnimateOnScroll
+      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+      leaveClass="animate-leave fade-out-0">
+      <p-chart type="bar" [data]="data_ed" [options]="options_ed" class="h-100" />
+    </p-card>
 
-    <div class="flex justify-between gap-y-8 flow-wrap">
-      <!-- Análisis de Fallidas por Acción -->
-      <p-card class="w-full" pAnimateOnScroll
-        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-        leaveClass="animate-leave fade-out-0">
-        <p-chart type="bar" [data]="data_afa" [options]="options_afa" class="h-120" />
-      </p-card>
-    </div>
+    <!-- Análisis de Fallidas por Acción -->
+    <p-card class="flex w-full h-120" pAnimateOnScroll
+      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+      leaveClass="animate-leave fade-out-0">
+      <p-chart type="bar" [data]="data_afa" [options]="options_afa" class="flex-1" />
+    </p-card>
+
+    <!-- Mapa -->
+    <p-card class="flex w-full" pAnimateOnScroll
+      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
+      leaveClass="animate-leave fade-out-0">
+      <div leaflet [leafletOptions]="map_option" (leafletMapReady)="on_map_ready($event)" class="size-full min-h-120">
+      </div>
+    </p-card>
   </div>
 </div>
 

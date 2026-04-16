@@ -3,6 +3,7 @@ import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { AnimateOnScrollModule } from 'primeng/animateonscroll';
 import { DashboardService } from '@/services/dashboard.service';
 import { Component, inject, signal } from '@angular/core';
+import { LeafletModule } from "@bluehalo/ngx-leaflet";
 import { MessageModule } from "primeng/message";
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -11,6 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { TagModule } from "primeng/tag";
+import * as lf from "leaflet";
 
 @Component({
   selector: 'app-dashboard',
@@ -18,6 +20,7 @@ import { TagModule } from "primeng/tag";
   imports: [
     AnimateOnScrollModule,
     DashboardDatasetView,
+    LeafletModule,
     MessageModule,
     ChartModule,
     ChipModule,
@@ -138,5 +141,18 @@ export class Dashboard {
   protected on_datasetview(description: string) {
     this.desc_datasetview.set(description);
     this.open_datasetview.update(value => !value);
+  }
+
+  protected get map_option() {
+    return this.service.leaflet_options;
+  }
+
+  protected on_map_ready(map: lf.Map) {
+    this.service.map = map;
+    this.service.map_layers.addTo(map);
+
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
   }
 }
