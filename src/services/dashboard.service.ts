@@ -426,6 +426,12 @@ export class DashboardService {
       const indicadores = this.indicadores();
       let total_ordenes = 0;
 
+      indicadores.forEach(it => {
+        it.monto = 0;
+        it.porcentaje = 0;
+        it.value = 0;
+      });
+
       result.map(data => {
         indicadores.forEach(indicador => {
           if (indicador.description == "Total ordenes") {
@@ -465,6 +471,7 @@ export class DashboardService {
                   indicador.porcentaje = Math.round((indicador.value / total_ordenes) * 100);
                 }
               }
+              break;
           }
         });
       });
