@@ -1,7 +1,7 @@
 import { provideRouter, withComponentInputBinding, withEnabledBlockingInitialNavigation, withInMemoryScrolling } from '@angular/router';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { registerLocaleData } from "@angular/common";
+import { DatePipe, registerLocaleData } from "@angular/common";
 import localeEs from "@angular/common/locales/es";
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
@@ -33,6 +33,7 @@ export const appConfig: ApplicationConfig = {
           darkModeSelector: '.app-dark'
         }
       }
-    })
+    }),
+    DatePipe
   ]
 };

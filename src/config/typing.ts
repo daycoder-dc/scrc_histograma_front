@@ -35,7 +35,8 @@ export type HistoryData = {
   periodo_dia: string,
   accion: string,
   longitud: string | null,
-  latitud: string | null
+  latitud: string | null,
+  barrio: string | null
 }
 
 export enum EstadoOrdenes {

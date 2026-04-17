@@ -8,6 +8,7 @@ import { FormControl, FormGroup } from "@angular/forms";
 import chartDataLabels from "chartjs-plugin-datalabels";
 import { HttpClient } from "@angular/common/http";
 import { BlockHttpService } from "./block_http";
+import { DatePipe } from "@angular/common";
 import { io } from "socket.io-client";
 import { unpack } from "msgpackr";
 import * as lf from "leaflet";
@@ -16,6 +17,7 @@ import * as lf from "leaflet";
 export class DashboardService {
   private readonly block = inject(BlockHttpService);
   private readonly http = inject(HttpClient);
+  protected readonly date = inject(DatePipe);
 
   public readonly socket = io({
     path: "/api/socket.io",
@@ -41,7 +43,7 @@ export class DashboardService {
     {
       value: 0,
       description: "Efectivas",
-      color: "text-primary",
+      color: "text-blue-400",
       background: false,
       porcentaje: 0,
       monto: 0,
@@ -49,7 +51,7 @@ export class DashboardService {
     {
       value: 0,
       description: "Fallida C/Pago",
-      color: "text-primary",
+      color: "text-yellow-400",
       background: false,
       porcentaje: 0,
       monto: 0,
@@ -57,7 +59,7 @@ export class DashboardService {
     {
       value: 0,
       description: "Sin recaudación",
-      color: "text-red-500",
+      color: "text-red-400",
       background: false,
       porcentaje: 0,
       monto: 0,
@@ -129,6 +131,7 @@ export class DashboardService {
         align: "center",
         clip: false,
         font: { size: 10 },
+        color: "#33",
         formatter: (value, ctx) => {
           if (value === 0) return null;
 
@@ -180,6 +183,7 @@ export class DashboardService {
         align: "center",
         clip: false,
         font: { size: 10 },
+        color: "#333",
         formatter: (value, ctx) => {
           if (value === 0) return null;
 
@@ -364,6 +368,13 @@ export class DashboardService {
   }
 
   public load_dataset() {
+    const document_colors = getComputedStyle(document.documentElement);
+    const colors = {
+      blue: document_colors.getPropertyValue("--color-blue-400"),
+      yellow: document_colors.getPropertyValue("--color-yellow-400"),
+      red: document_colors.getPropertyValue("--color-red-400"),
+    }
+
     const proyectos = this.form_filters.controls.proyectos.value ?? [];
     const periodos = this.form_filters.controls.periodos.value ?? [];
     const brigadas = this.form_filters.controls.brigadas.value ?? [];
@@ -412,70 +423,54 @@ export class DashboardService {
 
     // Cargar indicadores
     {
-      const ordenes = result.reduce<DataIndicadores>((acc, cur) => {
-        acc.value += 1;
-        acc.porcentaje = 100;
-        acc.monto += cur.valor_unitario;
-        return acc;
-      }, {
-        description: "Total ordenes",
-        color: "text-white",
-        background: true,
-        value: 0,
-        porcentaje: 0,
-        monto: 0
+      const indicadores = this.indicadores();
+      let total_ordenes = 0;
+
+      result.map(data => {
+        indicadores.forEach(indicador => {
+          if (indicador.description == "Total ordenes") {
+            indicador.value += 1;
+            indicador.porcentaje = 100;
+            indicador.monto += data.valor_unitario;
+            total_ordenes = indicador.value;
+          }
+
+          switch (data.estado) {
+            case EstadoOrdenes.EFECTIVA:
+              if (indicador.description == "Efectivas") {
+                indicador.value += 1;
+                indicador.monto += data.valor_unitario;
+
+                if (total_ordenes > 0) {
+                  indicador.porcentaje = Math.round((indicador.value / total_ordenes) * 100);
+                }
+              }
+              break;
+            case EstadoOrdenes.FALLIDA_PAGA:
+              if (indicador.description == "Fallida C/Pago") {
+                indicador.value += 1;
+                indicador.monto += data.valor_unitario;
+
+                if (total_ordenes > 0) {
+                  indicador.porcentaje = Math.round((indicador.value / total_ordenes) * 100);
+                }
+              }
+              break;
+            case EstadoOrdenes.FALLIDA:
+              if (indicador.description == "Sin recaudación") {
+                indicador.value += 1;
+                indicador.monto += data.valor_unitario;
+
+                if (total_ordenes > 0) {
+                  indicador.porcentaje = Math.round((indicador.value / total_ordenes) * 100);
+                }
+              }
+          }
+        });
       });
 
-      const efectivas = result.filter(it => it.estado == EstadoOrdenes.EFECTIVA)
-        .reduce<DataIndicadores>((acc, cur) => {
-          acc.value += 1;
-          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
-          acc.monto += cur.valor_unitario;
-          return acc;
-        }, {
-          description: "Efectivas",
-          color: "text-primary",
-          background: false,
-          value: 0,
-          porcentaje: 0,
-          monto: 0,
-        }
-        );
-
-      const fallidas_paga = result.filter(it => it.estado == EstadoOrdenes.FALLIDA_PAGA)
-        .reduce<DataIndicadores>((acc, cur) => {
-          acc.value += 1;
-          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
-          acc.monto += cur.valor_unitario;
-          return acc;
-        }, {
-          description: "Fallida C/Pago",
-          color: "text-primary",
-          background: false,
-          value: 0,
-          porcentaje: 0,
-          monto: 0,
-        }
-        );
-
-      const sin_recaudacion = result.filter(it => it.estado == EstadoOrdenes.FALLIDA)
-        .reduce<DataIndicadores>((acc, cur) => {
-          acc.value += 1;
-          acc.porcentaje = Math.round((acc.value / ordenes.value) * 100);
-          acc.monto += cur.valor_unitario;
-          return acc;
-        }, {
-          value: 0,
-          description: "Sin recaudación",
-          color: "text-red-500",
-          background: false,
-          porcentaje: 0,
-          monto: 0,
-        }
-        );
-
-      this.indicadores.set([ordenes, efectivas, fallidas_paga, sin_recaudacion]);
-      this.total_ordenes.set(ordenes.value);
+      this.indicadores.set(indicadores);
+      this.total_ordenes.set(total_ordenes);
     }
 
     // Cargar grafico de distribución horaria y valor
@@ -525,19 +520,25 @@ export class DashboardService {
             type: "bar",
             label: "Efectivas",
             data: data.map(it => it[1].efectivas),
-            yAxisID: "y"
+            yAxisID: "y",
+            backgroundColor: colors.blue,
+            borderColor: colors.blue
           },
           {
             type: "bar",
             label: "Fallidas Paga",
             data: data.map(it => it[1].fallidas_pagas),
-            yAxisID: "y"
+            yAxisID: "y",
+            backgroundColor: colors.yellow,
+            borderColor: colors.yellow
           },
           {
             type: "bar",
             label: "Fallida",
             data: data.map(it => it[1].fallidas),
-            yAxisID: "y"
+            yAxisID: "y",
+            backgroundColor: colors.red,
+            borderColor: colors.red
           },
           {
             type: "line",
@@ -594,17 +595,23 @@ export class DashboardService {
           {
             type: "bar",
             label: "Efectivas",
-            data: data.map(it => it[1].efectivas)
+            data: data.map(it => it[1].efectivas),
+            backgroundColor: colors.blue,
+            borderColor: colors.blue,
           },
           {
             type: "bar",
             label: "Fallidas Paga",
-            data: data.map(it => it[1].fallidas_pagas)
+            data: data.map(it => it[1].fallidas_pagas),
+            backgroundColor: colors.yellow,
+            borderColor: colors.yellow
           },
           {
             type: "bar",
             label: "Fallida",
-            data: data.map(it => it[1].fallidas)
+            data: data.map(it => it[1].fallidas),
+            backgroundColor: colors.red,
+            borderColor: colors.red
           }
         ]
       }
@@ -727,10 +734,14 @@ export class DashboardService {
           {
             label: "Fallidas (Sin Recaudación)",
             data: data.map(it => it.fallidas),
+            backgroundColor: colors.red,
+            borderColor: colors.red
           },
           {
             label: "Fallidas Pagas (C/Recaudación)",
             data: data.map(it => it.fallidas_paga),
+            backgroundColor: colors.yellow,
+            borderColor: colors.yellow
           }
         ]
       };
@@ -741,26 +752,37 @@ export class DashboardService {
     // Cargar marcadores map
     {
       this.map_layers.clearLayers();
-
       let count = 0;
+
       for (const item of result) {
         if (item.latitud && item.longitud) {
           const marker = lf.circleMarker([Number(item.latitud), Number(item.longitud)], {
             renderer: this.map_canvas,
             radius: 5,
-            fillColor: "#ff4757",
+            fillColor: (
+              item.estado == EstadoOrdenes.EFECTIVA ? colors.blue :
+                item.estado == EstadoOrdenes.FALLIDA_PAGA ? colors.yellow :
+                  item.estado == EstadoOrdenes.FALLIDA ? colors.red : "#333"
+            ),
             stroke: false,
             weight: 0.5,
             opacity: 1,
             fillOpacity: 0.8
           });
 
+          marker.bindTooltip(() => `
+            <div class="flex flex-col gap-1 text-xs">
+              <span class="font-bold text-sm">${item.orden}</span>
+              <span class="font-bold">Barrio: ${item.barrio}</span>
+              <span class="font-bold">Fecha: ${this.date.transform(item.fecha, "yyyy-MM-dd")}</span>
+              <span class="font-bold">Ténico: ${item.tecnico}</span>
+            </div>
+          `, { direction: "top", sticky: true });
+
           this.map_layers.addLayer(marker);
           count++;
         }
       }
-
-      console.log("Markers:", count);
     }
 
     this.table.set(result);
