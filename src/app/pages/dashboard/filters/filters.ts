@@ -2,12 +2,14 @@ import { DashboardService } from "@/services/dashboard.service";
 import { MultiSelectModule } from "primeng/multiselect";
 import { ReactiveFormsModule } from "@angular/forms";
 import { Component, inject } from "@angular/core";
+import { Button } from "primeng/button";
 
 @Component({
   selector: "app-dashboard-filter",
   imports: [
     ReactiveFormsModule,
-    MultiSelectModule
+    MultiSelectModule,
+    Button
   ],
   templateUrl: "./filters.html"
 })
@@ -36,5 +38,9 @@ export class DashboardFilter {
 
   protected get form() {
     return this.service.form_filters;
+  }
+
+  protected on_load_dataset() {
+    this.service.load_dataset();
   }
 }
