@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-y-4">
   <!-- top panel -->
   <div class="flex flex-col gap-2">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center flex-wrap">
       <div class="flex">
         <h3 class="font-bold">Panel de Control SCR</h3>
       </div>
@@ -26,8 +26,7 @@
   </div>
 
   <!-- indicadores -->
-  <div class="flex overflow-x-auto" pAnimateOnScroll
-    enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000" leaveClass="animate-leave fade-out-0">
+  <div class="flex overflow-x-auto">
     @for (card of indicadores; track $index) {
     <div
       class="p-6 mx-3 rounded-xl flex flex-col gap-3 min-w-72 2xl:min-w-80 flex-1 my-3 cursor-pointer hover:outline-2 outline-surface-500"
@@ -53,15 +52,11 @@
   <div class="flex flex-col gap-y-8">
     <div class="flex justify-between gap-y-8 flex-wrap">
       <!-- Grafico - Distribución horaria y valor -->
-      <p-card class="w-full xl:w-[59%]" pAnimateOnScroll
-        enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-        leaveClass="animate-leave fade-out-0">
+      <p-card class="w-full xl:w-[59%]">
         <p-chart type="line" [data]="data_dh" [options]="options_dh" class="h-100" />
       </p-card>
       <!-- Rendimiento de brigada -->
-      <p-card class="w-full xl:w-[39%]" header="Rendimiento de Brigada" pAnimateOnScroll
-        enterClass="animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000"
-        leaveClass="animate-leave fade-out-0">
+      <p-card class="w-full xl:w-[39%]" header="Rendimiento de Brigada">
         <p-table size="small" [scrollable]="true" scrollHeight="25rem" [value]="data_rb">
           <ng-template #header>
             <tr>
@@ -100,23 +95,30 @@
     </div>
 
     <!-- Evolución Diaria -->
-    <p-card class="flex w-full" pAnimateOnScroll
-      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-      leaveClass="animate-leave fade-out-0">
+    <p-card class="flex w-full">
       <p-chart type="bar" [data]="data_ed" [options]="options_ed" class="h-100" />
     </p-card>
 
     <!-- Análisis de Fallidas por Acción -->
-    <p-card class="flex w-full h-120" pAnimateOnScroll
-      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-      leaveClass="animate-leave fade-out-0">
+    <p-card class="flex w-full h-120">
       <p-chart type="bar" [data]="data_afa" [options]="options_afa" class="flex-1" />
     </p-card>
 
+    <!-- Brigada scr -->
+    <div class="flex justify-between gap-y-8 flex-wrap">
+      <!-- Brigada liviana -->
+      <p-card class="flex w-full">
+        <p-chart type="bar" [data]="data_br_liviana" [options]="option_br_scr_liviana" class="min-h-160" />
+      </p-card>
+
+      <!-- Brigada pesada -->
+      <p-card class="flex w-full">
+        <p-chart type="bar" [data]="data_br_pesada" [options]="option_br_scr_pesada" class="min-h-320" />
+      </p-card>
+    </div>
+
     <!-- Mapa -->
-    <p-card class="flex w-full" pAnimateOnScroll
-      enterClass="animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000"
-      leaveClass="animate-leave fade-out-0">
+    <p-card class="flex w-full">
       <div leaflet [leafletOptions]="map_option" (leafletMapReady)="on_map_ready($event)" class="size-full min-h-120">
       </div>
     </p-card>

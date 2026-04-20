@@ -102,6 +102,14 @@ export class Dashboard {
     return this.service.fecha_acualizacion();
   }
 
+  protected get data_br_liviana() {
+    return this.service.brigada_liviana();
+  }
+
+  protected get data_br_pesada() {
+    return this.service.brigada_pesada();
+  }
+
   protected get options_afa() {
     return this.service.options_analisis_fallidas_accion;
   }
@@ -112,6 +120,14 @@ export class Dashboard {
 
   protected get options_dh() {
     return this.service.options_distribucion_horaria;
+  }
+
+  protected get option_br_scr_liviana() {
+    return this.service.options_brigada_scr_liviana;
+  }
+
+  protected get option_br_scr_pesada() {
+    return this.service.options_brigada_scr_pesada;
   }
 
   protected get filters_afa() {

@@ -8,9 +8,7 @@ import { filter, Subject, takeUntil } from 'rxjs';
   selector: 'app-sidebar',
   imports: [RouterModule, DashboardFilter],
   template: `
-      <div class="layout-sidebar">
-        <app-dashboard-filter/>
-      </div>
+      <app-dashboard-filter class="layout-sidebar"/>
     `
 })
 export class AppSidebar implements OnInit, OnDestroy {
